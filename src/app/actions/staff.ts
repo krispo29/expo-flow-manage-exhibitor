@@ -88,7 +88,7 @@ export async function sendConfirmationEmail(staffId: string) {
     await mockService.markStaffEmailSent(staffId)
     await new Promise(resolve => setTimeout(resolve, 500))
     
-    revalidatePath('/admin/exhibitor-portal')
+    revalidatePath('/admin/exhibitor')
     return { success: true }
   } catch (error) {
     console.error('Error sending confirmation email:', error)

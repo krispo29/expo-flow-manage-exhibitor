@@ -11,7 +11,7 @@ export function ProjectGuard({ children }: { children: React.ReactNode }) {
   const projectId = searchParams.get('projectId')
 
   // Pages that don't require a projectId
-  const isExemptPath = pathname === '/admin/projects' || pathname.startsWith('/admin/exhibitor-portal')
+  const isExemptPath = pathname === '/admin/projects' || pathname.startsWith('/admin/exhibitor')
 
   useEffect(() => {
     if (isExemptPath) return

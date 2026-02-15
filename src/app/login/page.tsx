@@ -30,7 +30,13 @@ export default function LoginPage() {
     } else if (result.success && result.user) {
       login(result.user)
       toast.success('Logged in successfully')
-      router.push('/admin/projects') // Redirect to project selection
+      
+      // EXHIBITORS go straight to their portal
+      if (result.user.role === 'EXHIBITOR') {
+        router.push('/admin/exhibitor')
+      } else {
+        router.push('/admin/projects')
+      }
     } else {
       toast.error('Unknown error')
       setLoading(false)

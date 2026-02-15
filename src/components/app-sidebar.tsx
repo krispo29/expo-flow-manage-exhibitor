@@ -12,6 +12,7 @@ import {
   Wrench,
   Settings,
   ChevronsUpDown,
+  Lock,
 } from "lucide-react"
 
 import { NavUser } from "@/components/nav-user"
@@ -193,15 +194,30 @@ export function AppSidebar({ projects, ...props }: React.ComponentProps<typeof S
                       asChild 
                       tooltip={user?.role === 'EXHIBITOR' ? 'Exhibitor' : 'Exhibitors'}
                       className="h-10 text-[15px] font-medium px-4"
-                      isActive={user?.role === 'EXHIBITOR' ? isActive('/admin/exhibitor-portal') : isActive('/admin/exhibitors')}
+                      isActive={user?.role === 'EXHIBITOR' ? isActive('/admin/exhibitor') : isActive('/admin/exhibitors')}
                     >
                       <Link href={
                         user?.role === 'EXHIBITOR' 
-                          ? '/admin/exhibitor-portal' 
+                          ? '/admin/exhibitor' 
                           : (projectId ? `/admin/exhibitors?projectId=${projectId}` : "/admin/exhibitors")
                       }>
                         <Store className="size-5" />
                         <span>{user?.role === 'EXHIBITOR' ? 'Exhibitor' : 'Exhibitors'}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )}
+                {user?.role === 'EXHIBITOR' && (
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      asChild 
+                      tooltip="Demo - Locked Mode"
+                      className="h-10 text-[15px] font-medium px-4 opacity-70 hover:opacity-100"
+                      isActive={isActive('/admin/exhibitor-2')}
+                    >
+                      <Link href="/admin/exhibitor-2">
+                        <Lock className="size-5" />
+                        <span>Demo (Locked Mode)</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
