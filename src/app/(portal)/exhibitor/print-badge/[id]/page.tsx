@@ -56,11 +56,11 @@ export default function PrintBadgePage() {
   return (
     <div>
       {/* Print Controls (hidden on print) */}
-      <div className="mb-6 flex items-center gap-4 print:hidden">
+      <div className="mb-6 flex items-center gap-4 print:hidden px-1">
         <Button variant="outline" onClick={() => router.back()}>
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Portal
+          <ArrowLeft className="mr-2 h-4 w-4" /> Back
         </Button>
-        <Button onClick={() => window.print()}>
+        <Button onClick={() => globalThis.print()}>
           <Printer className="mr-2 h-4 w-4" /> Print Badge
         </Button>
       </div>

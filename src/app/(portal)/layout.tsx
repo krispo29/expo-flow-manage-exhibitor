@@ -10,7 +10,7 @@ import {
 import { ProjectGuard } from "@/components/project-guard"
 import { AuthGuard } from "@/components/auth-guard"
 
-export default async function PortalLayout({ children }: { children: React.ReactNode }) {
+export default async function PortalLayout({ children }: { readonly children: React.ReactNode }) {
   return (
     <AuthGuard>
       <ProjectGuard>
@@ -26,7 +26,7 @@ export default async function PortalLayout({ children }: { children: React.React
                 </div>
               </div>
             </header>
-            <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+            <div className="flex flex-1 flex-col gap-4 p-4 pt-6">
               {children}
             </div>
           </SidebarInset>

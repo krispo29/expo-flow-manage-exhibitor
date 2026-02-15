@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/store/useAuthStore'
 
-export function ProjectGuard({ children }: { children: React.ReactNode }) {
+export function ProjectGuard({ children }: { readonly children: React.ReactNode }) {
   const router = useRouter()
   const { user } = useAuthStore()
 

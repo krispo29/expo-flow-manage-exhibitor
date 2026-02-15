@@ -5,64 +5,87 @@ import { Staff, Exhibitor } from '@/lib/mock-service'
 import { QRCodeSVG } from 'qrcode.react'
 
 interface ExhibitorBadgeProps {
-  staff: Staff
-  exhibitor: Exhibitor
+  readonly staff: Staff
+  readonly exhibitor: Exhibitor
 }
 
 export function ExhibitorBadge({ staff, exhibitor }: ExhibitorBadgeProps) {
   return (
-    <div className="print-badge w-[4in] h-[6in] border border-gray-200 bg-white p-4 flex flex-col items-center justify-between text-center mx-auto mb-8 break-after-page relative overflow-hidden">
-      {/* Header / Logo Area */}
-      <div className="w-full pt-8">
-        <div className="text-3xl font-bold uppercase tracking-wider text-primary">
-          EXPO FLOW
+    <div className="print-badge w-[4in] h-[6in] bg-white flex flex-col items-center text-center mx-auto mb-8 break-after-page relative overflow-hidden shadow-lg border border-gray-100 print:shadow-none print:border-none">
+      {/* Category Header Bar */}
+      <div className="w-full bg-emerald-600 h-16 flex items-center justify-center">
+        <span className="text-white text-3xl font-black uppercase tracking-[0.3em] leading-none">
+          EXHIBITOR
+        </span>
+      </div>
+
+      {/* Event Header */}
+      <div className="w-full pt-8 px-6">
+        <div className="text-sm font-bold uppercase tracking-[0.2em] text-emerald-700/60 mb-1">
+          Expo Flow Management
         </div>
-        <div className="text-sm text-muted-foreground mt-1">
-          MANAGEMENT 2026
+        <div className="h-[2px] w-12 bg-emerald-600 mx-auto opacity-30"></div>
+        <div className="text-xs font-medium text-slate-400 mt-2 uppercase tracking-widest">
+          Bangkok 2026
         </div>
       </div>
 
-      {/* Staff Info */}
-      <div className="w-full flex-1 flex flex-col justify-center gap-2">
-        <h1 className="text-3xl font-extrabold text-slate-900 break-words leading-tight">
-          {staff.title} {staff.firstName} {staff.lastName}
-        </h1>
-        <h2 className="text-xl text-slate-600 font-medium mt-2">
-          {staff.position || 'Staff'}
-        </h2>
-        <div className="mt-3 space-y-1">
-          <h3 className="text-lg text-slate-700 font-semibold">
+      {/* Staff Identity Section */}
+      <div className="w-full flex-1 flex flex-col justify-center px-6 py-4">
+        <div className="space-y-1">
+          <h1 className="text-4xl font-black text-slate-900 leading-[1.1] mb-2 px-2 break-words">
+            {staff.title} {staff.firstName}<br />
+            {staff.lastName}
+          </h1>
+          <div className="inline-block px-4 py-1 bg-slate-100 rounded-full">
+            <h2 className="text-lg text-slate-600 font-bold uppercase tracking-wide">
+              {staff.position || 'Staff'}
+            </h2>
+          </div>
+        </div>
+
+        <div className="mt-8 space-y-1 bg-slate-50/50 py-4 px-4 rounded-xl border border-slate-100/50">
+          <h3 className="text-xl text-emerald-800 font-black uppercase tracking-tight leading-tight">
             {exhibitor.companyName}
           </h3>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-500 font-bold uppercase tracking-widest">
             {exhibitor.country}
           </p>
-          <p className="text-sm text-slate-500">
-            {exhibitor.phone}
-          </p>
         </div>
       </div>
 
-      {/* Footer / QR / Type */}
-      <div className="w-full flex flex-col items-center gap-4 pb-8">
-        <div className="border-4 border-slate-900 p-2 rounded-lg">
-           <QRCodeSVG value={staff.id} size={120} />
+      {/* Footer / QR Section */}
+      <div className="w-full bg-slate-50 px-6 py-8 flex flex-col items-center gap-6 border-t border-slate-100">
+        <div className="bg-white p-3 rounded-2xl shadow-sm border border-slate-200">
+          <QRCodeSVG 
+            value={staff.id} 
+            size={110} 
+            level="H"
+          />
         </div>
         
-        <div className="w-full border-t-2 border-slate-200 pt-4 mt-2">
-          <span className="inline-block bg-emerald-700 text-white text-xl font-bold px-6 py-2 rounded-full uppercase tracking-widest">
-            EXHIBITOR
-          </span>
-          <div className="text-xs text-slate-400 mt-2 font-mono">
-            {staff.id}
+        <div className="flex items-center gap-6 w-full justify-center">
+          <div className="text-left">
+            <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Booth No.</div>
+            <div className="text-xl font-black text-emerald-600 tracking-tighter">{exhibitor.boothNumber}</div>
           </div>
-          <div className="text-xs text-slate-400 mt-1">
-            Booth: {exhibitor.boothNumber}
+          <div className="h-8 w-[1px] bg-slate-200"></div>
+          <div className="text-right">
+            <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Staff ID</div>
+            <div className="text-sm font-mono font-bold text-slate-700">{staff.id.split('-').pop()}</div>
           </div>
         </div>
       </div>
 
-       <style jsx global>{`
+      <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap');
+        
+        .print-badge {
+          font-family: 'Outfit', sans-serif !important;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+
         @media print {
           @page {
             size: 4in 6in;
@@ -71,22 +94,29 @@ export function ExhibitorBadge({ staff, exhibitor }: ExhibitorBadgeProps) {
           body {
             print-color-adjust: exact;
             -webkit-print-color-adjust: exact;
+            margin: 0;
+            padding: 0;
           }
           .print-badge {
-            border: none;
-            width: 100vw;
-            height: 100vh;
-            margin: 0;
+            box-shadow: none !important;
+            border: none !important;
+            width: 4in !important;
+            height: 6in !important;
+            margin: 0 !important;
+            position: absolute;
+            top: 0;
+            left: 0;
             break-after: page;
           }
-           /* Hide everything else */
           body > *:not(.print-area) {
-            display: none;
+            display: none !important;
           }
           .print-area {
-            display: block;
-            width: 100%;
-            height: 100%;
+            display: block !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 4in !important;
+            height: 6in !important;
           }
         }
       `}</style>
