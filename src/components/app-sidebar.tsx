@@ -2,16 +2,7 @@
 
 import * as React from "react"
 import {
-  Users,
-  Contact,
-  Frame,
-  LayoutDashboard,
   Store,
-  Presentation,
-  FileText,
-  Wrench,
-  Settings,
-  ChevronsUpDown,
   Lock,
 } from "lucide-react"
 
@@ -29,47 +20,24 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
 } from "@/components/ui/sidebar"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import Link from 'next/link'
-import { useRouter, useSearchParams, usePathname } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { ModeToggle } from "@/components/mode-toggle"
 import { useAuthStore } from "@/store/useAuthStore"
 
-interface SidebarProject {
-  name: string
-  id: string
-  url: string
-}
-
-export function AppSidebar({ projects, ...props }: React.ComponentProps<typeof Sidebar> & { projects?: SidebarProject[] }) {
-  const router = useRouter()
-  const searchParams = useSearchParams()
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname()
-  const projectId = searchParams.get('projectId')
   const { user } = useAuthStore()
 
-  // Find the active project
-  const activeProject = projects?.find(p => p.id === projectId)
-
   const userData = {
-    name: user?.username || "Admin",
-    email: user?.role || "Administrator",
+    name: user?.username || "Exhibitor",
+    email: user?.role || "Exhibitor Portal",
     avatar: "/avatars/admin.jpg",
-  }
-
-  const handleProjectChange = (newProjectId: string) => {
-    router.push(`/admin?projectId=${newProjectId}`)
   }
 
   // Helper to check if a path is active
   const isActive = (path: string) => {
-    if (path === '/admin' && pathname === '/admin') return true
-    return pathname.startsWith(path) && path !== '/admin'
+    return pathname.startsWith(path)
   }
 
   return (
@@ -77,227 +45,57 @@ export function AppSidebar({ projects, ...props }: React.ComponentProps<typeof S
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            {user?.role === 'EXHIBITOR' ? (
-              <SidebarMenuButton size="lg" className="hover:bg-transparent cursor-default">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-emerald-600 text-white font-bold">
-                  <Store className="size-4" />
-                </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold uppercase tracking-tight">
-                    Exhibitor Portal
-                  </span>
-                  <span className="truncate text-[10px] opacity-70 font-bold uppercase tracking-widest">Management System</span>
-                </div>
-              </SidebarMenuButton>
-            ) : (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <SidebarMenuButton size="lg" className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-                    <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                      <Frame className="size-4" />
-                    </div>
-                    <div className="grid flex-1 text-left text-sm leading-tight">
-                      <span className="truncate font-semibold uppercase tracking-tight">
-                        {activeProject?.name || "Select Project"}
-                      </span>
-                      <span className="truncate text-[10px] opacity-70 font-bold uppercase tracking-widest">Management System</span>
-                    </div>
-                    <ChevronsUpDown className="ml-auto size-4" />
-                  </SidebarMenuButton>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-xl" align="start">
-                  <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-widest">Projects</div>
-                  {projects?.map((project) => (
-                    <DropdownMenuItem
-                      key={project.id}
-                      onClick={() => handleProjectChange(project.id)}
-                      className="gap-2 p-2 focus:bg-primary/5 focus:text-primary cursor-pointer"
-                    >
-                      <Frame className="size-4" />
-                      <span className="font-medium">{project.name}</span>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
+            <SidebarMenuButton size="lg" className="hover:bg-transparent cursor-default">
+              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-emerald-600 text-white font-bold">
+                <Store className="size-4" />
+              </div>
+              <div className="grid flex-1 text-left text-sm leading-tight">
+                <span className="truncate font-semibold uppercase tracking-tight">
+                  Exhibitor Portal
+                </span>
+                <span className="truncate text-[10px] opacity-70 font-bold uppercase tracking-widest">Management System</span>
+              </div>
+            </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent className="gap-0">
-        {user?.role !== 'EXHIBITOR' && (
-          <SidebarGroup>
-            <SidebarGroupLabel className="px-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-2">
-              Navigation
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu className="gap-0.5">
-                <SidebarMenuItem>
-                  <SidebarMenuButton 
-                    asChild 
-                    tooltip="Dashboard" 
-                    className="h-10 text-[15px] font-medium px-4"
-                    isActive={isActive('/admin')}
-                  >
-                    <Link href={projectId ? `/admin?projectId=${projectId}` : "/admin"}>
-                      <LayoutDashboard className="size-5" />
-                      <span>Dashboard</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
-
-        {(user?.role === 'ADMIN' || user?.role === 'ORGANIZER' || user?.role === 'EXHIBITOR') && (
-          <SidebarGroup>
-            {user?.role !== 'EXHIBITOR' && (
-              <SidebarGroupLabel className="px-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mt-4 mb-2">
-                Event Management
-              </SidebarGroupLabel>
-            )}
-            <SidebarGroupContent>
-              <SidebarMenu className="gap-0.5">
-                {user?.role === 'ADMIN' && (
-                  <SidebarMenuItem>
-                    <SidebarMenuButton 
-                      asChild 
-                      tooltip="Participants" 
-                      className="h-10 text-[15px] font-medium px-4"
-                      isActive={isActive('/admin/participants')}
-                    >
-                      <Link href={projectId ? `/admin/participants?projectId=${projectId}` : "/admin/participants"}>
-                        <Contact className="size-5" />
-                        <span>Participants</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )}
-                {user?.role === 'ADMIN' && (
-                  <SidebarMenuItem>
-                    <SidebarMenuButton 
-                      asChild 
-                      tooltip="Organizers" 
-                      className="h-10 text-[15px] font-medium px-4"
-                      isActive={isActive('/admin/organizers')}
-                    >
-                      <Link href={projectId ? `/admin/organizers?projectId=${projectId}` : "/admin/organizers"}>
-                        <Users className="size-5" />
-                        <span>Organizers</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )}
-                {(user?.role === 'ADMIN' || user?.role === 'ORGANIZER' || user?.role === 'EXHIBITOR') && (
-                  <SidebarMenuItem>
-                    <SidebarMenuButton 
-                      asChild 
-                      tooltip={user?.role === 'EXHIBITOR' ? 'Exhibitor' : 'Exhibitors'}
-                      className="h-10 text-[15px] font-medium px-4"
-                      isActive={user?.role === 'EXHIBITOR' ? isActive('/exhibitor') : isActive('/admin/exhibitors')}
-                    >
-                      <Link href={
-                        user?.role === 'EXHIBITOR' 
-                          ? '/exhibitor' 
-                          : (projectId ? `/admin/exhibitors?projectId=${projectId}` : "/admin/exhibitors")
-                      }>
-                        <Store className="size-5" />
-                        <span>{user?.role === 'EXHIBITOR' ? 'Exhibitor' : 'Exhibitors'}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )}
-                {user?.role === 'EXHIBITOR' && (
-                  <SidebarMenuItem>
-                    <SidebarMenuButton 
-                      asChild 
-                      tooltip="Demo - Locked Mode"
-                      className="h-10 text-[15px] font-medium px-4 opacity-70 hover:opacity-100"
-                      isActive={isActive('/exhibitor-2')}
-                    >
-                      <Link href="/exhibitor-2">
-                        <Lock className="size-5" />
-                        <span>Demo (Locked Mode)</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )}
-                {(user?.role === 'ADMIN' || user?.role === 'ORGANIZER') && (
-                  <SidebarMenuItem>
-                    <SidebarMenuButton 
-                      asChild 
-                      tooltip="Conferences" 
-                      className="h-10 text-[15px] font-medium px-4"
-                      isActive={isActive('/admin/conferences')}
-                    >
-                      <Link href={projectId ? `/admin/conferences?projectId=${projectId}` : "/admin/conferences"}>
-                        <Presentation className="size-5" />
-                        <span>Conferences</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
-
-        {(user?.role === 'ADMIN' || user?.role === 'ORGANIZER') && (
-          <SidebarGroup>
-            <SidebarGroupLabel className="px-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mt-4 mb-2">
-              System & Tools
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu className="gap-0.5">
-                {(user?.role === 'ADMIN' || user?.role === 'ORGANIZER') && (
-                  <SidebarMenuItem>
-                    <SidebarMenuButton 
-                      asChild 
-                      tooltip="Reports" 
-                      className="h-10 text-[15px] font-medium px-4"
-                      isActive={isActive('/admin/reports')}
-                    >
-                      <Link href={projectId ? `/admin/reports?projectId=${projectId}` : "/admin/reports"}>
-                        <FileText className="size-5" />
-                        <span>Reports</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )}
-                {user?.role === 'ADMIN' && (
-                  <SidebarMenuItem>
-                    <SidebarMenuButton 
-                      asChild 
-                      tooltip="Utility" 
-                      className="h-10 text-[15px] font-medium px-4"
-                      isActive={isActive('/admin/utilities')}
-                    >
-                      <Link href={projectId ? `/admin/utilities?projectId=${projectId}` : "/admin/utilities"}>
-                        <Wrench className="size-5" />
-                        <span>Utility</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )}
-                {user?.role === 'ADMIN' && (
-                  <SidebarMenuItem>
-                    <SidebarMenuButton 
-                      asChild 
-                      tooltip="Settings" 
-                      className="h-10 text-[15px] font-medium px-4"
-                      isActive={isActive('/admin/settings')}
-                    >
-                      <Link href={projectId ? `/admin/settings?projectId=${projectId}` : "/admin/settings"}>
-                        <Settings className="size-5" />
-                        <span>Settings</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
+        <SidebarGroup>
+          <SidebarGroupLabel className="px-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-2">
+            Navigation
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu className="gap-0.5">
+              <SidebarMenuItem>
+                <SidebarMenuButton 
+                  asChild 
+                  tooltip="Exhibitor"
+                  className="h-10 text-[15px] font-medium px-4"
+                  isActive={isActive('/exhibitor')}
+                >
+                  <Link href="/exhibitor">
+                    <Store className="size-5" />
+                    <span>Exhibitor Portal</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              
+              <SidebarMenuItem>
+                <SidebarMenuButton 
+                  asChild 
+                  tooltip="Demo - Locked Mode"
+                  className="h-10 text-[15px] font-medium px-4 opacity-70 hover:opacity-100"
+                  isActive={isActive('/exhibitor-2')}
+                >
+                  <Link href="/exhibitor-2">
+                    <Lock className="size-5" />
+                    <span>Demo (Locked Mode)</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
         <div className="flex items-center justify-between p-2">

@@ -1,56 +1,29 @@
 import { AppSidebar } from "@/components/app-sidebar"
 import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
-import { Separator } from "@/components/ui/separator"
+  Separator,
+} from "@/components/ui/separator"
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import { ProjectGuard } from "@/components/project-guard"
-import { getProjects } from "@/app/actions/project"
 import { AuthGuard } from "@/components/auth-guard"
 
 export default async function PortalLayout({ children }: { children: React.ReactNode }) {
-  // Fetch projects from server action
-  const { projects } = await getProjects()
-  
-  // Map to sidebar format
-  const sidebarProjects = projects?.map(p => ({
-    name: p.name,
-    id: p.id,
-    url: '/admin/projects',
-  })) || []
-
   return (
     <AuthGuard>
       <ProjectGuard>
         <SidebarProvider>
-          <AppSidebar projects={sidebarProjects} />
+          <AppSidebar />
           <SidebarInset>
-            <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+            <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 border-b">
               <div className="flex items-center gap-2 px-4">
                 <SidebarTrigger className="-ml-1" />
                 <Separator orientation="vertical" className="mr-2 h-4" />
-                <Breadcrumb>
-                  <BreadcrumbList>
-                    <BreadcrumbItem className="hidden md:block">
-                      <BreadcrumbLink href="#">
-                        Expo Flow
-                      </BreadcrumbLink>
-                    </BreadcrumbItem>
-                    <BreadcrumbSeparator className="hidden md:block" />
-                    <BreadcrumbItem>
-                      <BreadcrumbPage>Exhibitor Portal</BreadcrumbPage>
-                    </BreadcrumbItem>
-                  </BreadcrumbList>
-                </Breadcrumb>
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-sm uppercase tracking-tight text-emerald-600">Exhibitor Portal</span>
+                </div>
               </div>
             </header>
             <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
