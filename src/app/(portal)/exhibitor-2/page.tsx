@@ -80,7 +80,7 @@ export default function ExhibitorPortalPresentationPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">{exhibitor.companyName}</h1>
           <p className="text-muted-foreground mt-1">
-            Exhibitor Portal — Booth {exhibitor.boothNumber}
+            Exhibitor — Booth {exhibitor.boothNumber}
           </p>
         </div>
         <Badge variant="destructive" className="gap-1 text-sm px-3 py-1">

@@ -22,7 +22,7 @@ export default async function PortalLayout({ children }: { children: React.React
                 <SidebarTrigger className="-ml-1" />
                 <Separator orientation="vertical" className="mr-2 h-4" />
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold text-sm uppercase tracking-tight text-emerald-600">Exhibitor Portal</span>
+                  <span className="font-semibold text-sm uppercase tracking-tight text-emerald-600">Exhibitor</span>
                 </div>
               </div>
             </header>

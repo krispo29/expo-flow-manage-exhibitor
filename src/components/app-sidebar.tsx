@@ -31,7 +31,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   const userData = {
     name: user?.username || "Exhibitor",
-    email: user?.role || "Exhibitor Portal",
+    email: user?.role || "Exhibitor",
     avatar: "/avatars/admin.jpg",
   }
 
@@ -51,7 +51,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold uppercase tracking-tight">
-                  Exhibitor Portal
+                  Exhibitor
                 </span>
                 <span className="truncate text-[10px] opacity-70 font-bold uppercase tracking-widest">Management System</span>
               </div>
@@ -75,7 +75,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 >
                   <Link href="/exhibitor">
                     <Store className="size-5" />
-                    <span>Exhibitor Portal</span>
+                    <span>Exhibitor</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
