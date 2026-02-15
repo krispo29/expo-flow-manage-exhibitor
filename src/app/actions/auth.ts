@@ -32,6 +32,7 @@ export async function loginAction(formData: FormData) {
                 id: user.id,
                 username: user.username,
                 role: user.role,
+                exhibitorId: user.exhibitorId,
             },
         }
     }

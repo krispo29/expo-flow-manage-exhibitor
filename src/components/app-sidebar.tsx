@@ -76,67 +76,85 @@ export function AppSidebar({ projects, ...props }: React.ComponentProps<typeof S
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <SidebarMenuButton size="lg" className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-                  <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                    <Frame className="size-4" />
-                  </div>
-                  <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold uppercase tracking-tight">
-                      {activeProject?.name || "Select Project"}
-                    </span>
-                    <span className="truncate text-[10px] opacity-70 font-bold uppercase tracking-widest">Management System</span>
-                  </div>
-                  <ChevronsUpDown className="ml-auto size-4" />
-                </SidebarMenuButton>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-xl" align="start">
-                <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-widest">Projects</div>
-                {projects?.map((project) => (
-                  <DropdownMenuItem
-                    key={project.id}
-                    onClick={() => handleProjectChange(project.id)}
-                    className="gap-2 p-2 focus:bg-primary/5 focus:text-primary cursor-pointer"
-                  >
-                    <Frame className="size-4" />
-                    <span className="font-medium">{project.name}</span>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {user?.role === 'EXHIBITOR' ? (
+              <SidebarMenuButton size="lg" className="hover:bg-transparent cursor-default">
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-emerald-600 text-white font-bold">
+                  <Store className="size-4" />
+                </div>
+                <div className="grid flex-1 text-left text-sm leading-tight">
+                  <span className="truncate font-semibold uppercase tracking-tight">
+                    Exhibitor Portal
+                  </span>
+                  <span className="truncate text-[10px] opacity-70 font-bold uppercase tracking-widest">Management System</span>
+                </div>
+              </SidebarMenuButton>
+            ) : (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <SidebarMenuButton size="lg" className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+                    <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                      <Frame className="size-4" />
+                    </div>
+                    <div className="grid flex-1 text-left text-sm leading-tight">
+                      <span className="truncate font-semibold uppercase tracking-tight">
+                        {activeProject?.name || "Select Project"}
+                      </span>
+                      <span className="truncate text-[10px] opacity-70 font-bold uppercase tracking-widest">Management System</span>
+                    </div>
+                    <ChevronsUpDown className="ml-auto size-4" />
+                  </SidebarMenuButton>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-xl" align="start">
+                  <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-widest">Projects</div>
+                  {projects?.map((project) => (
+                    <DropdownMenuItem
+                      key={project.id}
+                      onClick={() => handleProjectChange(project.id)}
+                      className="gap-2 p-2 focus:bg-primary/5 focus:text-primary cursor-pointer"
+                    >
+                      <Frame className="size-4" />
+                      <span className="font-medium">{project.name}</span>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent className="gap-0">
-        <SidebarGroup>
-          <SidebarGroupLabel className="px-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-2">
-            Navigation
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu className="gap-0.5">
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  asChild 
-                  tooltip="Dashboard" 
-                  className="h-10 text-[15px] font-medium px-4"
-                  isActive={isActive('/admin')}
-                >
-                  <Link href={projectId ? `/admin?projectId=${projectId}` : "/admin"}>
-                    <LayoutDashboard className="size-5" />
-                    <span>Dashboard</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {user?.role !== 'EXHIBITOR' && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="px-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-2">
+              Navigation
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu className="gap-0.5">
+                <SidebarMenuItem>
+                  <SidebarMenuButton 
+                    asChild 
+                    tooltip="Dashboard" 
+                    className="h-10 text-[15px] font-medium px-4"
+                    isActive={isActive('/admin')}
+                  >
+                    <Link href={projectId ? `/admin?projectId=${projectId}` : "/admin"}>
+                      <LayoutDashboard className="size-5" />
+                      <span>Dashboard</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
 
         {(user?.role === 'ADMIN' || user?.role === 'ORGANIZER' || user?.role === 'EXHIBITOR') && (
           <SidebarGroup>
-            <SidebarGroupLabel className="px-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mt-4 mb-2">
-              Event Management
-            </SidebarGroupLabel>
+            {user?.role !== 'EXHIBITOR' && (
+              <SidebarGroupLabel className="px-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mt-4 mb-2">
+                Event Management
+              </SidebarGroupLabel>
+            )}
             <SidebarGroupContent>
               <SidebarMenu className="gap-0.5">
                 {user?.role === 'ADMIN' && (
@@ -173,13 +191,17 @@ export function AppSidebar({ projects, ...props }: React.ComponentProps<typeof S
                   <SidebarMenuItem>
                     <SidebarMenuButton 
                       asChild 
-                      tooltip="Exhibitors" 
+                      tooltip={user?.role === 'EXHIBITOR' ? 'Exhibitor' : 'Exhibitors'}
                       className="h-10 text-[15px] font-medium px-4"
-                      isActive={isActive('/admin/exhibitors')}
+                      isActive={user?.role === 'EXHIBITOR' ? isActive('/admin/exhibitor-portal') : isActive('/admin/exhibitors')}
                     >
-                      <Link href={projectId ? `/admin/exhibitors?projectId=${projectId}` : "/admin/exhibitors"}>
+                      <Link href={
+                        user?.role === 'EXHIBITOR' 
+                          ? '/admin/exhibitor-portal' 
+                          : (projectId ? `/admin/exhibitors?projectId=${projectId}` : "/admin/exhibitors")
+                      }>
                         <Store className="size-5" />
-                        <span>Exhibitors</span>
+                        <span>{user?.role === 'EXHIBITOR' ? 'Exhibitor' : 'Exhibitors'}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

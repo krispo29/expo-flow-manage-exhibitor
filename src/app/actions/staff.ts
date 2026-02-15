@@ -17,6 +17,7 @@ export async function createStaff(data: Omit<Staff, 'id' | 'createdAt'>) {
   try {
     const staff = await mockService.createStaff(data)
     revalidatePath('/admin/exhibitors')
+    revalidatePath('/admin/exhibitor-portal')
     return { success: true, staff }
   } catch (error) {
     console.error('Error creating staff:', error)
@@ -28,6 +29,7 @@ export async function updateStaff(id: string, data: Partial<Omit<Staff, 'id' | '
   try {
     const staff = await mockService.updateStaff(id, data)
     revalidatePath('/admin/exhibitors')
+    revalidatePath('/admin/exhibitor-portal')
     return { success: true, staff }
   } catch (error) {
     console.error('Error updating staff:', error)
@@ -39,6 +41,7 @@ export async function deleteStaff(id: string) {
   try {
     await mockService.deleteStaff(id)
     revalidatePath('/admin/exhibitors')
+    revalidatePath('/admin/exhibitor-portal')
     return { success: true }
   } catch (error) {
     console.error('Error deleting staff:', error)
@@ -63,3 +66,33 @@ export async function sendStaffCredentials(staffId: string, targetEmail?: string
     return { error: 'Failed to send credentials' }
   }
 }
+
+export async function checkDuplicateEmail(exhibitorId: string, email: string, excludeStaffId?: string) {
+  try {
+    const isDuplicate = await mockService.checkStaffDuplicateEmail(exhibitorId, email, excludeStaffId)
+    return { success: true, isDuplicate }
+  } catch (error) {
+    console.error('Error checking duplicate email:', error)
+    return { error: 'Failed to check duplicate email' }
+  }
+}
+
+export async function sendConfirmationEmail(staffId: string) {
+  try {
+    const staff = await mockService.getStaffById(staffId)
+    if (!staff) throw new Error('Staff not found')
+    
+    // Mock sending confirmation email
+    console.log(`Sending confirmation email to: ${staff.email} (Staff: ${staff.firstName} ${staff.lastName})`)
+    
+    await mockService.markStaffEmailSent(staffId)
+    await new Promise(resolve => setTimeout(resolve, 500))
+    
+    revalidatePath('/admin/exhibitor-portal')
+    return { success: true }
+  } catch (error) {
+    console.error('Error sending confirmation email:', error)
+    return { error: 'Failed to send confirmation email' }
+  }
+}
+

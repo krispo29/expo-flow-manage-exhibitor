@@ -10,20 +10,20 @@ export function ProjectGuard({ children }: { children: React.ReactNode }) {
   const searchParams = useSearchParams()
   const projectId = searchParams.get('projectId')
 
+  // Pages that don't require a projectId
+  const isExemptPath = pathname === '/admin/projects' || pathname.startsWith('/admin/exhibitor-portal')
+
   useEffect(() => {
-    // If we are on the projects page, do nothing
-    if (pathname === '/admin/projects') return
+    if (isExemptPath) return
 
     // If no project ID is present, redirect to projects page
     if (!projectId) {
       router.push('/admin/projects')
     }
-  }, [projectId, pathname, router])
+  }, [projectId, isExemptPath, router])
 
-  // Show loader if we are NOT on projects page AND logic says we need a project but don't have one
-  // Actually, we just want to block rendering children if we are redirecting.
-  // If pathname is NOT /admin/projects AND no projectId, we show loader.
-  if (pathname !== '/admin/projects' && !projectId) {
+  // Show loader if we need a project but don't have one
+  if (!isExemptPath && !projectId) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -33,3 +33,4 @@ export function ProjectGuard({ children }: { children: React.ReactNode }) {
 
   return <>{children}</>
 }
+

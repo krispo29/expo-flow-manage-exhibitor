@@ -6,6 +6,7 @@ export interface User {
   username: string;
   password: string; // Plain text or hashed, but we'll mock login check
   role: 'ADMIN' | 'ORGANIZER' | 'EXHIBITOR';
+  exhibitorId?: string; // Links EXHIBITOR role user to their exhibitor record
 }
 
 export interface Project {
@@ -91,6 +92,7 @@ export interface Staff {
   email: string;
   mobile: string;
   position: string;
+  emailSent?: boolean; // Tracks if confirmation email was sent on first creation
   createdAt: Date;
 }
 
@@ -124,7 +126,7 @@ class MockService {
   private readonly users: User[] = [
     { id: '1', username: 'admin', password: '123', role: 'ADMIN' },
     { id: '2', username: 'organizer', password: '123', role: 'ORGANIZER' },
-    { id: '3', username: 'exhibitor', password: '123', role: 'EXHIBITOR' },
+    { id: '3', username: 'exhibitor', password: '123', role: 'EXHIBITOR', exhibitorId: 'ex-1' },
   ];
   
   private projectsList: Project[] = [
@@ -136,7 +138,7 @@ class MockService {
   private settings: SystemSettings = {
     siteUrl: 'https://www.ildexandhortiagri-vietnam.com',
     eventDate: new Date('2024-05-29'),
-    cutoffDate: new Date('2024-05-20'),
+    cutoffDate: new Date('2026-12-31'),
     eventTitle: 'ILDEX Vietnam 2024',
     eventSubtitle: 'International Livestock, Dairy, Meat Processing and Aquaculture Exposition',
     rooms: ['Grand Ballroom', 'Room 304', 'Conference Hall B']
@@ -458,6 +460,7 @@ class MockService {
       email: "d@agrotech.vn",
       mobile: "+84 111 222 333",
       position: "Manager",
+      emailSent: true,
       createdAt: new Date(),
     },
     {
@@ -469,6 +472,7 @@ class MockService {
       email: "e@agrotech.vn",
       mobile: "+84 444 555 666",
       position: "Engineer",
+      emailSent: true,
       createdAt: new Date(),
     },
     {
@@ -480,6 +484,7 @@ class MockService {
       email: "f@biofeed.com",
       mobile: "+84 777 888 999",
       position: "Sales",
+      emailSent: false,
       createdAt: new Date(),
     },
     {
@@ -491,6 +496,7 @@ class MockService {
       email: "kanya@greenery.th",
       mobile: "+66 89 000 1111",
       position: "Operator",
+      emailSent: false,
       createdAt: new Date(),
     },
     {
@@ -502,6 +508,7 @@ class MockService {
       email: "somchai@asialivestock.com",
       mobile: "+66 2 888 7777",
       position: "Director",
+      emailSent: false,
       createdAt: new Date(),
     },
   ];
@@ -509,6 +516,25 @@ class MockService {
   // --- Auth & Users ---
   async findUserByUsername(username: string): Promise<User | undefined> {
     return this.users.find(u => u.username === username);
+  }
+
+  async findExhibitorByUserId(userId: string): Promise<Exhibitor | undefined> {
+    const user = this.users.find(u => u.id === userId);
+    if (!user?.exhibitorId) return undefined;
+    return this.exhibitors.find(e => e.id === user.exhibitorId);
+  }
+
+  async checkStaffDuplicateEmail(exhibitorId: string, email: string, excludeStaffId?: string): Promise<boolean> {
+    return this.staffMembers.some(
+      s => s.exhibitorId === exhibitorId && s.email.toLowerCase() === email.toLowerCase() && s.id !== excludeStaffId
+    );
+  }
+
+  async markStaffEmailSent(staffId: string): Promise<Staff> {
+    const index = this.staffMembers.findIndex(s => s.id === staffId);
+    if (index === -1) throw new Error('Staff not found');
+    this.staffMembers[index] = { ...this.staffMembers[index], emailSent: true };
+    return this.staffMembers[index];
   }
 
   // --- Projects ---

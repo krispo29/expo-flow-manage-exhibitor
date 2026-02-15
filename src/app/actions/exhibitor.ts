@@ -88,3 +88,22 @@ export async function sendExhibitorCredentials(id: string, targetEmail?: string)
     return { error: 'Failed to send credentials' }
   }
 }
+
+export async function getExhibitorForPortal(exhibitorId: string) {
+  try {
+    const exhibitor = await mockService.getExhibitorById(exhibitorId)
+    if (!exhibitor) throw new Error('Exhibitor not found')
+    
+    const settings = await mockService.getSettings()
+    
+    return { 
+      success: true, 
+      exhibitor,
+      cutoffDate: settings.cutoffDate.toISOString(),
+    }
+  } catch (error) {
+    console.error('Error fetching exhibitor for portal:', error)
+    return { error: 'Failed to fetch exhibitor data' }
+  }
+}
+
