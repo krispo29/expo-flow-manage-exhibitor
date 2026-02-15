@@ -194,11 +194,11 @@ export function AppSidebar({ projects, ...props }: React.ComponentProps<typeof S
                       asChild 
                       tooltip={user?.role === 'EXHIBITOR' ? 'Exhibitor' : 'Exhibitors'}
                       className="h-10 text-[15px] font-medium px-4"
-                      isActive={user?.role === 'EXHIBITOR' ? isActive('/admin/exhibitor') : isActive('/admin/exhibitors')}
+                      isActive={user?.role === 'EXHIBITOR' ? isActive('/exhibitor') : isActive('/admin/exhibitors')}
                     >
                       <Link href={
                         user?.role === 'EXHIBITOR' 
-                          ? '/admin/exhibitor' 
+                          ? '/exhibitor' 
                           : (projectId ? `/admin/exhibitors?projectId=${projectId}` : "/admin/exhibitors")
                       }>
                         <Store className="size-5" />
@@ -213,9 +213,9 @@ export function AppSidebar({ projects, ...props }: React.ComponentProps<typeof S
                       asChild 
                       tooltip="Demo - Locked Mode"
                       className="h-10 text-[15px] font-medium px-4 opacity-70 hover:opacity-100"
-                      isActive={isActive('/admin/exhibitor-2')}
+                      isActive={isActive('/exhibitor-2')}
                     >
-                      <Link href="/admin/exhibitor-2">
+                      <Link href="/exhibitor-2">
                         <Lock className="size-5" />
                         <span>Demo (Locked Mode)</span>
                       </Link>

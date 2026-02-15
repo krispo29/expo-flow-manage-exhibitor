@@ -28,6 +28,7 @@ export async function updateExhibitor(id: string, data: Partial<Omit<Exhibitor, 
   try {
     const exhibitor = await mockService.updateExhibitor(id, data)
     revalidatePath('/admin/exhibitors')
+    revalidatePath('/exhibitor')
     return { success: true, exhibitor }
   } catch (error) {
     console.error('Error updating exhibitor:', error)

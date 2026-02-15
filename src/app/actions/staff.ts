@@ -17,7 +17,7 @@ export async function createStaff(data: Omit<Staff, 'id' | 'createdAt'>) {
   try {
     const staff = await mockService.createStaff(data)
     revalidatePath('/admin/exhibitors')
-    revalidatePath('/admin/exhibitor-portal')
+    revalidatePath('/exhibitor')
     return { success: true, staff }
   } catch (error) {
     console.error('Error creating staff:', error)
@@ -29,7 +29,7 @@ export async function updateStaff(id: string, data: Partial<Omit<Staff, 'id' | '
   try {
     const staff = await mockService.updateStaff(id, data)
     revalidatePath('/admin/exhibitors')
-    revalidatePath('/admin/exhibitor-portal')
+    revalidatePath('/exhibitor')
     return { success: true, staff }
   } catch (error) {
     console.error('Error updating staff:', error)
@@ -41,7 +41,7 @@ export async function deleteStaff(id: string) {
   try {
     await mockService.deleteStaff(id)
     revalidatePath('/admin/exhibitors')
-    revalidatePath('/admin/exhibitor-portal')
+    revalidatePath('/exhibitor')
     return { success: true }
   } catch (error) {
     console.error('Error deleting staff:', error)
@@ -88,7 +88,7 @@ export async function sendConfirmationEmail(staffId: string) {
     await mockService.markStaffEmailSent(staffId)
     await new Promise(resolve => setTimeout(resolve, 500))
     
-    revalidatePath('/admin/exhibitor')
+    revalidatePath('/exhibitor')
     return { success: true }
   } catch (error) {
     console.error('Error sending confirmation email:', error)

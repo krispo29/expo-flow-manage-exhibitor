@@ -33,7 +33,7 @@ export default function LoginPage() {
       
       // EXHIBITORS go straight to their portal
       if (result.user.role === 'EXHIBITOR') {
-        router.push('/admin/exhibitor')
+        router.push('/exhibitor')
       } else {
         router.push('/admin/projects')
       }

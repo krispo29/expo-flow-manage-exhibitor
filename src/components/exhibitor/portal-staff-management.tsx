@@ -313,7 +313,7 @@ export function PortalStaffManagement({ exhibitor, cutoffDate, onStaffChange }: 
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
                       <Button variant="ghost" size="icon" asChild title="Print Badge">
-                        <Link href={`/admin/exhibitor/print-badge/${staff.id}`}>
+                        <Link href={`/exhibitor/print-badge/${staff.id}`}>
                           <Printer className="h-4 w-4" />
                         </Link>
                       </Button>
