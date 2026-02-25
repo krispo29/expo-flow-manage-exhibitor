@@ -3,11 +3,33 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useAuthStore } from '@/store/useAuthStore'
-import { getExhibitorForPortal } from '@/app/actions/exhibitor'
-import { Exhibitor, Staff } from '@/lib/mock-service'
+import { getExhibitorProfile } from '@/app/actions/exhibitor'
 import { ExhibitorBadge } from '@/components/exhibitor/exhibitor-badge'
 import { Button } from '@/components/ui/button'
 import { Loader2, Printer, ArrowLeft } from 'lucide-react'
+
+interface ExhibitorMember {
+  member_uuid: string
+  registration_code: string
+  title: string
+  title_other: string
+  first_name: string
+  last_name: string
+  job_position: string
+  mobile_country_code: string
+  mobile_number: string
+  email: string
+  is_active: boolean
+  company_name: string
+  company_country: string
+  company_tel: string
+}
+
+interface ExhibitorInfo {
+  company_name: string
+  country: string
+  booth_no: string
+}
 
 export default function PrintBadgePage() {
   const params = useParams()
@@ -15,24 +37,30 @@ export default function PrintBadgePage() {
   const { user } = useAuthStore()
   const staffId = params.id as string
 
-  const [exhibitor, setExhibitor] = useState<Exhibitor | null>(null)
-  const [staff, setStaff] = useState<Staff | null>(null)
+  const [exhibitorInfo, setExhibitorInfo] = useState<ExhibitorInfo | null>(null)
+  const [staff, setStaff] = useState<ExhibitorMember | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     async function fetchData() {
-      if (!user?.exhibitorId) return
+      if (!user) return
       
-      const result = await getExhibitorForPortal(user.exhibitorId)
-      if (result.success && result.exhibitor) {
-        setExhibitor(result.exhibitor)
-        const foundStaff = result.exhibitor.staff.find((s: Staff) => s.id === staffId)
+      const result = await getExhibitorProfile()
+      if (result.success && result.data) {
+        setExhibitorInfo({
+          company_name: result.data.info.company_name,
+          country: result.data.info.country,
+          booth_no: result.data.info.booth_no,
+        })
+        const foundStaff = (result.data.members || []).find(
+          (m: ExhibitorMember) => m.member_uuid === staffId
+        )
         setStaff(foundStaff || null)
       }
       setLoading(false)
     }
     fetchData()
-  }, [user?.exhibitorId, staffId])
+  }, [user, staffId])
 
   if (loading) {
     return (
@@ -42,7 +70,7 @@ export default function PrintBadgePage() {
     )
   }
 
-  if (!exhibitor || !staff) {
+  if (!exhibitorInfo || !staff) {
     return (
       <div className="flex h-[60vh] flex-col items-center justify-center gap-4">
         <p className="text-muted-foreground">Staff member not found.</p>
@@ -67,7 +95,7 @@ export default function PrintBadgePage() {
 
       {/* Badge Preview / Print Area */}
       <div className="print-area">
-        <ExhibitorBadge staff={staff} exhibitor={exhibitor} />
+        <ExhibitorBadge staff={staff} exhibitor={exhibitorInfo} />
       </div>
     </div>
   )

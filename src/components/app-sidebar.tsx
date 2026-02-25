@@ -1,9 +1,10 @@
 "use client"
 
 import * as React from "react"
+import { cn } from "@/lib/utils"
 import {
-  Store,
-  Lock,
+  Users,
+  Frame,
 } from "lucide-react"
 
 import { NavUser } from "@/components/nav-user"
@@ -31,7 +32,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   const userData = {
     name: user?.username || "Exhibitor",
-    email: user?.role || "Exhibitor",
+    email: "Exhibitor",
     avatar: "/avatars/admin.jpg",
   }
 
@@ -45,15 +46,20 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" className="hover:bg-transparent cursor-default">
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-emerald-600 text-white font-bold">
-                <Store className="size-4" />
+            <SidebarMenuButton 
+              size="lg" 
+              className="border border-primary/10 bg-gradient-to-br from-primary/5 to-transparent cursor-default hover:bg-primary/10 transition-all duration-500 rounded-xl h-14"
+            >
+              <div className="flex aspect-square size-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/20 ring-4 ring-primary/5 group-hover:scale-105 transition-transform duration-500">
+                <Frame className="size-5" />
               </div>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold uppercase tracking-tight">
+              <div className="grid flex-1 text-left text-sm leading-tight ml-2">
+                <span className="truncate font-bold text-[14px] tracking-tight text-foreground">
                   Exhibitor
                 </span>
-                <span className="truncate text-[10px] opacity-70 font-bold uppercase tracking-widest">Management System</span>
+                <span className="truncate text-[10px] text-muted-foreground/60 font-semibold uppercase tracking-[0.1em] mt-0.5">
+                  Portal
+                </span>
               </div>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -61,35 +67,26 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent className="gap-0">
         <SidebarGroup>
-          <SidebarGroupLabel className="px-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-2">
-            Navigation
+          <SidebarGroupLabel className="px-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mt-4 mb-2">
+            Exhibitor Portal
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="gap-0.5">
               <SidebarMenuItem>
                 <SidebarMenuButton 
                   asChild 
-                  tooltip="Exhibitor"
-                  className="h-10 text-[15px] font-medium px-4"
+                  tooltip="Portal" 
+                  className={cn(
+                    "h-10 text-[15px] font-medium px-4 transition-all duration-200",
+                    isActive('/exhibitor') 
+                      ? "bg-primary/10 text-primary font-bold border-l-4 border-primary rounded-none ml-0 pl-3" 
+                      : "hover:bg-sidebar-accent/50"
+                  )}
                   isActive={isActive('/exhibitor')}
                 >
                   <Link href="/exhibitor">
-                    <Store className="size-5" />
-                    <span>Exhibitor</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  asChild 
-                  tooltip="Demo - Locked Mode"
-                  className="h-10 text-[15px] font-medium px-4 opacity-70 hover:opacity-100"
-                  isActive={isActive('/exhibitor-2')}
-                >
-                  <Link href="/exhibitor-2">
-                    <Lock className="size-5" />
-                    <span>Demo (Locked Mode)</span>
+                    <Users className="size-5 transition-transform group-hover:scale-110" />
+                    <span>My Portal</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

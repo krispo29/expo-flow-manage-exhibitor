@@ -7,31 +7,28 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-import { ProjectGuard } from "@/components/project-guard"
 import { AuthGuard } from "@/components/auth-guard"
 
 export default async function PortalLayout({ children }: { readonly children: React.ReactNode }) {
   return (
     <AuthGuard>
-      <ProjectGuard>
-        <SidebarProvider>
-          <AppSidebar />
-          <SidebarInset>
-            <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 border-b">
-              <div className="flex items-center gap-2 px-4">
-                <SidebarTrigger className="-ml-1" />
-                <Separator orientation="vertical" className="mr-2 h-4" />
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold text-sm uppercase tracking-tight text-emerald-600">Exhibitor</span>
-                </div>
+      <SidebarProvider>
+        <AppSidebar />
+        <SidebarInset>
+          <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 border-b">
+            <div className="flex items-center gap-2 px-4">
+              <SidebarTrigger className="-ml-1" />
+              <Separator orientation="vertical" className="mr-2 h-4" />
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-sm uppercase tracking-tight text-emerald-600">Exhibitor</span>
               </div>
-            </header>
-            <div className="flex flex-1 flex-col gap-4 p-4 pt-6">
-              {children}
             </div>
-          </SidebarInset>
-        </SidebarProvider>
-      </ProjectGuard>
+          </header>
+          <div className="flex flex-1 flex-col gap-4 p-4 pt-6">
+            {children}
+          </div>
+        </SidebarInset>
+      </SidebarProvider>
     </AuthGuard>
   )
 }

@@ -1,9 +1,10 @@
 'use server'
 
-import { mockService } from '@/lib/mock-service'
+import { cookies } from 'next/headers'
+import { AxiosError } from 'axios'
+import api from '@/lib/api'
 
-
-export async function loginAction(formData: FormData) {
+export async function exhibitorLoginAction(formData: FormData) {
   const username = formData.get('username') as string
   const password = formData.get('password') as string
 
@@ -12,35 +13,72 @@ export async function loginAction(formData: FormData) {
   }
 
   try {
-    const user = await mockService.findUserByUsername(username)
+    const body = new URLSearchParams({ username, password })
+    const response = await api.post('/auth/exhibitor/signin', body.toString(), {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    })
 
-    if (!user) {
-      return { error: 'Invalid username or password' }
+    const result = response.data
+
+    if (result.code !== 200 || !result.data?.access_token) {
+      return { error: result.message || 'Invalid username or password' }
     }
 
-    // In a real app, use bcrypt.compare. For mock, we can just check directly or rely on the mock service logic.
-    // For now, let's keep it simple and assume the password storage in mock service is plaintext or we simulate comparison.
-    // Since we initialized mock user with 'password' (hashed in real life, but here for simplicity let's match string)
-    // If you want to simulate real auth:
-    // const isValid = await bcrypt.compare(password, user.password)
-    
-    // For the specific requested mock "admin" / "password"
-    if (user && password === user.password) {
-         return {
-            success: true,
-            user: {
-                id: user.id,
-                username: user.username,
-                role: user.role,
-                exhibitorId: user.exhibitorId,
-            },
-        }
-    }
-     
-    return { error: 'Invalid username or password' }
+    const { access_token, exhibitor_uuid, project_uuid } = result.data
 
+    // Store access token in HTTP-only cookie
+    const cookieStore = await cookies()
+    cookieStore.set('access_token', access_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: result.data.expires_in || 604800,
+      path: '/',
+    })
+
+    // Store user role in cookie for server-side role detection
+    cookieStore.set('user_role', 'EXHIBITOR', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: result.data.expires_in || 604800,
+      path: '/',
+    })
+
+    // Store project UUID
+    cookieStore.set('project_uuid', project_uuid, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: result.data.expires_in || 604800,
+      path: '/',
+    })
+
+    return {
+      success: true,
+      user: {
+        id: exhibitor_uuid,
+        username,
+        role: 'EXHIBITOR',
+        projectUuid: project_uuid,
+        exhibitorId: exhibitor_uuid
+      },
+    }
   } catch (error) {
-    console.error('Login error:', error)
-    return { error: 'An unexpected error occurred' }
+    console.error('Exhibitor login error:', error)
+    const errorMsg = error instanceof AxiosError 
+      ? error.response?.data?.message || error.message 
+      : 'Unable to connect to server'
+    return { error: errorMsg }
   }
 }
+
+export async function logoutAction() {
+  const cookieStore = await cookies()
+  cookieStore.delete('access_token')
+  cookieStore.delete('project_uuid')
+  cookieStore.delete('user_role')
+  return { success: true }
+}
+
+

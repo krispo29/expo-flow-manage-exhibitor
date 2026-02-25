@@ -1,8 +1,12 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { getStaffByExhibitorId, createStaff, updateStaff, deleteStaff, checkDuplicateEmail, sendConfirmationEmail } from '@/app/actions/staff'
-import { Staff, Exhibitor } from '@/lib/mock-service'
+import { useState, useEffect } from 'react'
+import { 
+  addExhibitorMember, 
+  updateExhibitorMember, 
+  toggleExhibitorMemberStatus,
+  resendMemberEmailConfirmation 
+} from '@/app/actions/exhibitor'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import {
@@ -35,85 +39,124 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Pencil, Trash2, Loader2, Printer, AlertTriangle, Lock, CheckCircle, Mail } from 'lucide-react'
+import { Plus, Pencil, Trash2, Loader2, Printer, AlertTriangle, Lock, Mail } from 'lucide-react'
 import { toast } from 'sonner'
 import Link from 'next/link'
 
+interface ExhibitorInfo {
+  exhibitor_uuid: string
+  project_uuid: string
+  company_name: string
+  booth_no: string
+  quota: number
+  over_quota: number
+}
+
+interface ExhibitorMember {
+  member_uuid: string
+  registration_code: string
+  title: string
+  title_other: string
+  first_name: string
+  last_name: string
+  job_position: string
+  mobile_country_code: string
+  mobile_number: string
+  email: string
+  is_active: boolean
+  company_name: string
+  company_country: string
+  company_tel: string
+}
+
+interface CutoffStatus {
+  is_editable: boolean
+  cutoff_date: string
+}
+
 interface PortalStaffManagementProps {
-  readonly exhibitor: Exhibitor & { staff: Staff[] }
-  readonly cutoffDate: string
+  readonly exhibitorInfo?: ExhibitorInfo | null
+  readonly members?: ExhibitorMember[]
+  readonly cutoffStatus?: CutoffStatus | null
   readonly onStaffChange?: () => void
 }
 
-export function PortalStaffManagement({ exhibitor, cutoffDate, onStaffChange }: PortalStaffManagementProps) {
-  const [staffList, setStaffList] = useState<Staff[]>(exhibitor.staff || [])
+const TITLES = ['Mr.', 'Ms.', 'Mrs.', 'Dr.', 'Prof.', 'Miss']
+
+export function PortalStaffManagement({ 
+  exhibitorInfo, 
+  members = [], 
+  cutoffStatus,
+  onStaffChange 
+}: PortalStaffManagementProps) {
+  const [memberList, setMemberList] = useState<ExhibitorMember[]>(members)
   const [loading, setLoading] = useState(false)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [editingStaff, setEditingStaff] = useState<Staff | null>(null)
+  const [editingMember, setEditingMember] = useState<ExhibitorMember | null>(null)
   const [isOtherTitle, setIsOtherTitle] = useState(false)
   const [customTitle, setCustomTitle] = useState('')
   
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
+    first_name: '',
+    last_name: '',
     title: '',
-    position: '',
+    title_other: '',
+    job_position: '',
     email: '',
-    mobile: ''
+    mobile_country_code: '66',
+    mobile_number: '',
+    company_name: '',
+    company_country: '',
+    company_tel: ''
   })
 
-  const TITLES = ['Mr.', 'Ms.', 'Mrs.', 'Dr.', 'Prof.', 'Miss']
-  
-  const totalQuota = exhibitor.quota + exhibitor.overQuota
-  const staffCount = staffList.length
+  // Update member list when props change
+  useEffect(() => {
+    setMemberList(members)
+  }, [members])
+
+  const totalQuota = (exhibitorInfo?.quota || 0) + (exhibitorInfo?.over_quota || 0)
+  const staffCount = memberList.length
   const isQuotaFull = staffCount >= totalQuota
   
   const now = new Date()
-  const cutoff = new Date(cutoffDate)
-  const isPastCutoff = now > cutoff
+  const cutoff = cutoffStatus?.cutoff_date ? new Date(cutoffStatus.cutoff_date) : new Date()
+  const isPastCutoff = cutoffStatus ? !cutoffStatus.is_editable : false
 
-  const fetchStaff = useCallback(async () => {
-    setLoading(true)
-    const result = await getStaffByExhibitorId(exhibitor.id)
-    if (result.success && result.staff) {
-      setStaffList(result.staff)
-    }
-    setLoading(false)
-  }, [exhibitor.id])
-
-  useEffect(() => {
-    fetchStaff()
-  }, [fetchStaff])
-
-  function handleOpenDialog(staff?: Staff) {
+  function handleOpenDialog(member?: ExhibitorMember) {
     if (isPastCutoff) {
       toast.error('Editing is no longer allowed. The cutoff date has passed.')
       return
     }
     
-    if (staff) {
-      setEditingStaff(staff)
-      const isStandard = TITLES.includes(staff.title || '')
+    if (member) {
+      setEditingMember(member)
+      const isStandard = TITLES.includes(member.title || '')
       
       let displayTitle = '';
       if (isStandard) {
-        displayTitle = staff.title;
-      } else if (staff.title) {
+        displayTitle = member.title;
+      } else if (member.title) {
         displayTitle = 'Other';
       }
       
       setFormData({
-        firstName: staff.firstName || '',
-        lastName: staff.lastName || '',
+        first_name: member.first_name || '',
+        last_name: member.last_name || '',
         title: displayTitle,
-        position: staff.position || '',
-        email: staff.email || '',
-        mobile: staff.mobile || ''
+        title_other: member.title_other || '',
+        job_position: member.job_position || '',
+        email: member.email || '',
+        mobile_country_code: member.mobile_country_code || '66',
+        mobile_number: member.mobile_number || '',
+        company_name: member.company_name || '',
+        company_country: member.company_country || '',
+        company_tel: member.company_tel || ''
       })
       
-      if (!isStandard && staff.title) {
+      if (!isStandard && member.title) {
         setIsOtherTitle(true)
-        setCustomTitle(staff.title)
+        setCustomTitle(member.title)
       } else {
         setIsOtherTitle(false)
         setCustomTitle('')
@@ -123,14 +166,19 @@ export function PortalStaffManagement({ exhibitor, cutoffDate, onStaffChange }: 
         toast.error(`Cannot add more staff. Quota limit reached (${totalQuota}).`)
         return
       }
-      setEditingStaff(null)
+      setEditingMember(null)
       setFormData({
-        firstName: '',
-        lastName: '',
+        first_name: '',
+        last_name: '',
         title: '',
-        position: '',
+        title_other: '',
+        job_position: '',
         email: '',
-        mobile: ''
+        mobile_country_code: '66',
+        mobile_number: '',
+        company_name: exhibitorInfo?.company_name || '',
+        company_country: '',
+        company_tel: ''
       })
       setIsOtherTitle(false)
       setCustomTitle('')
@@ -140,84 +188,72 @@ export function PortalStaffManagement({ exhibitor, cutoffDate, onStaffChange }: 
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    if (!exhibitorInfo?.exhibitor_uuid) return
     
     const finalTitle = isOtherTitle ? customTitle : formData.title
     
-    // Check for duplicate email
-    if (formData.email) {
-      const dupResult = await checkDuplicateEmail(
-        exhibitor.id, 
-        formData.email, 
-        editingStaff?.id
-      )
-      if (dupResult.success && dupResult.isDuplicate) {
-        toast.warning('Warning: This email is already used by another staff member. It is recommended to use a unique email for each staff.', {
-          duration: 5000,
-        })
-        // Important: We still allow saving — just warn
-      }
-    }
-    
     const payload = {
+      exhibitor_uuid: exhibitorInfo.exhibitor_uuid,
       title: finalTitle,
-      firstName: formData.firstName,
-      lastName: formData.lastName,
-      position: formData.position,
+      title_other: formData.title_other,
+      first_name: formData.first_name,
+      last_name: formData.last_name,
+      job_position: formData.job_position,
       email: formData.email,
-      mobile: formData.mobile,
+      mobile_country_code: formData.mobile_country_code,
+      mobile_number: formData.mobile_number,
+      company_name: formData.company_name,
+      company_country: formData.company_country,
+      company_tel: formData.company_tel
     }
 
     let result
-    if (editingStaff) {
-      result = await updateStaff(editingStaff.id, payload)
-    } else {
-      result = await createStaff({
+    if (editingMember) {
+      result = await updateExhibitorMember({
         ...payload,
-        exhibitorId: exhibitor.id,
+        member_uuid: editingMember.member_uuid
       })
+    } else {
+      result = await addExhibitorMember(payload)
     }
 
     if (result.success) {
-      toast.success(editingStaff ? 'Staff updated' : 'Staff added')
+      toast.success(editingMember ? 'Staff updated' : 'Staff added')
       setIsDialogOpen(false)
-      
-      // Send confirmation email only on first creation (not edit)
-      if (!editingStaff && result.staff) {
-        const confirmResult = await sendConfirmationEmail(result.staff.id)
-        if (confirmResult.success) {
-          toast.success('Confirmation email sent to ' + formData.email, { duration: 4000 })
-        }
-      }
-      
-      fetchStaff()
       onStaffChange?.()
     } else {
       toast.error(result.error || 'Operation failed')
     }
   }
 
-  async function handleDelete(id: string) {
+  async function handleToggleStatus(member: ExhibitorMember) {
     if (isPastCutoff) {
       toast.error('Editing is no longer allowed. The cutoff date has passed.')
       return
     }
+    if (!exhibitorInfo?.exhibitor_uuid) return
     
-    toast("Delete this staff member?", {
-      description: "This action cannot be undone.",
-      action: {
-        label: "Delete",
-        onClick: async () => {
-          const result = await deleteStaff(id)
-          if (result.success) {
-            toast.success('Staff deleted')
-            setStaffList(staffList.filter(s => s.id !== id))
-            onStaffChange?.()
-          } else {
-            toast.error('Failed to delete staff')
-          }
-        },
-      },
-    })
+    const result = await toggleExhibitorMemberStatus(
+      exhibitorInfo.exhibitor_uuid,
+      member.member_uuid
+    )
+    
+    if (result.success) {
+      toast.success(`Staff ${member.is_active ? 'deactivated' : 'activated'} successfully`)
+      onStaffChange?.()
+    } else {
+      toast.error(result.error || 'Failed to update status')
+    }
+  }
+
+  async function handleResendEmail(memberUuid: string) {
+    const result = await resendMemberEmailConfirmation([memberUuid])
+    
+    if (result.success) {
+      toast.success('Email confirmation sent')
+    } else {
+      toast.error(result.error || 'Failed to send email')
+    }
   }
 
   return (
@@ -235,10 +271,10 @@ export function PortalStaffManagement({ exhibitor, cutoffDate, onStaffChange }: 
           </CardTitle>
           <CardDescription className="mt-1">
             <span className="font-medium">
-              {staffCount} / {exhibitor.quota} 
+              {staffCount} / {exhibitorInfo?.quota || 0} 
             </span>
-            {exhibitor.overQuota > 0 && (
-              <span className="text-muted-foreground"> + {exhibitor.overQuota} over quota</span>
+            {(exhibitorInfo?.over_quota || 0) > 0 && (
+              <span className="text-muted-foreground"> + {exhibitorInfo?.over_quota} over quota</span>
             )}
             {' '}staff registered
             {isQuotaFull && (
@@ -268,7 +304,7 @@ export function PortalStaffManagement({ exhibitor, cutoffDate, onStaffChange }: 
           <div className="flex justify-center p-4">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
-        ) : staffList.length === 0 ? (
+        ) : memberList.length === 0 ? (
           <div className="text-center p-8 text-muted-foreground">
             <p className="text-lg font-medium">No staff members added yet</p>
             <p className="text-sm mt-1">Click &ldquo;Add Staff&rdquo; to register your team members</p>
@@ -282,45 +318,45 @@ export function PortalStaffManagement({ exhibitor, cutoffDate, onStaffChange }: 
                 <TableHead>Full Name</TableHead>
                 <TableHead>Position</TableHead>
                 <TableHead>Contact</TableHead>
-                <TableHead>Email Status</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {staffList.map((staff) => (
-                <TableRow key={staff.id}>
-                  <TableCell className="font-mono text-sm">{staff.id}</TableCell>
-                  <TableCell>{staff.title}</TableCell>
-                  <TableCell className="font-medium">{staff.firstName} {staff.lastName}</TableCell>
-                  <TableCell>{staff.position}</TableCell>
+              {memberList.map((member) => (
+                <TableRow key={member.member_uuid}>
+                  <TableCell className="font-mono text-sm">{member.registration_code}</TableCell>
+                  <TableCell>{member.title}</TableCell>
+                  <TableCell className="font-medium">{member.first_name} {member.last_name}</TableCell>
+                  <TableCell>{member.job_position}</TableCell>
                   <TableCell>
-                    <div className="text-sm">{staff.email}</div>
-                    <div className="text-xs text-muted-foreground">{staff.mobile}</div>
+                    <div className="text-sm">{member.email}</div>
+                    <div className="text-xs text-muted-foreground">+{member.mobile_country_code} {member.mobile_number}</div>
                   </TableCell>
                   <TableCell>
-                    {staff.emailSent ? (
-                      <Badge variant="outline" className="gap-1 text-green-600 border-green-200 bg-green-50">
-                        <CheckCircle className="h-3 w-3" />
-                        Sent
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="gap-1 text-orange-600 border-orange-200 bg-orange-50">
-                        <Mail className="h-3 w-3" />
-                        Pending
-                      </Badge>
-                    )}
+                    <Badge variant={member.is_active ? 'default' : 'secondary'}>
+                      {member.is_active ? 'Active' : 'Inactive'}
+                    </Badge>
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
                       <Button variant="ghost" size="icon" asChild title="Print Badge">
-                        <Link href={`/exhibitor/print-badge/${staff.id}`}>
+                        <Link href={`/exhibitor/print-badge/${member.member_uuid}`}>
                           <Printer className="h-4 w-4" />
                         </Link>
                       </Button>
                       <Button 
                         variant="ghost" 
                         size="icon" 
-                        onClick={() => handleOpenDialog(staff)}
+                        onClick={() => handleResendEmail(member.member_uuid)}
+                        title="Resend Email"
+                      >
+                        <Mail className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => handleOpenDialog(member)}
                         disabled={isPastCutoff}
                         title="Edit"
                       >
@@ -329,11 +365,11 @@ export function PortalStaffManagement({ exhibitor, cutoffDate, onStaffChange }: 
                       <Button 
                         variant="ghost" 
                         size="icon" 
-                        onClick={() => handleDelete(staff.id)}
+                        onClick={() => handleToggleStatus(member)}
                         disabled={isPastCutoff}
-                        title="Delete"
+                        title={member.is_active ? 'Deactivate' : 'Activate'}
                       >
-                        <Trash2 className="h-4 w-4 text-destructive" />
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </TableCell>
@@ -347,9 +383,9 @@ export function PortalStaffManagement({ exhibitor, cutoffDate, onStaffChange }: 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editingStaff ? 'Edit Staff' : 'Add Staff'}</DialogTitle>
+            <DialogTitle>{editingMember ? 'Edit Staff' : 'Add Staff'}</DialogTitle>
             <DialogDescription>
-              {editingStaff ? 'Update staff details.' : `Add a new staff member. (${staffCount}/${totalQuota} slots used)`}
+              {editingMember ? 'Update staff details.' : `Add a new staff member. (${staffCount}/${totalQuota} slots used)`}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit}>
@@ -391,16 +427,16 @@ export function PortalStaffManagement({ exhibitor, cutoffDate, onStaffChange }: 
                 </div>
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="firstName" className="text-right">First Name</Label>
-                <Input id="firstName" value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value})} className="col-span-3" required />
+                <Label htmlFor="first_name" className="text-right">First Name</Label>
+                <Input id="first_name" value={formData.first_name} onChange={e => setFormData({...formData, first_name: e.target.value})} className="col-span-3" required />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="lastName" className="text-right">Last Name</Label>
-                <Input id="lastName" value={formData.lastName} onChange={e => setFormData({...formData, lastName: e.target.value})} className="col-span-3" required />
+                <Label htmlFor="last_name" className="text-right">Last Name</Label>
+                <Input id="last_name" value={formData.last_name} onChange={e => setFormData({...formData, last_name: e.target.value})} className="col-span-3" required />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="position" className="text-right">Position</Label>
-                <Input id="position" value={formData.position} onChange={e => setFormData({...formData, position: e.target.value})} className="col-span-3" />
+                <Label htmlFor="job_position" className="text-right">Position</Label>
+                <Input id="job_position" value={formData.job_position} onChange={e => setFormData({...formData, job_position: e.target.value})} className="col-span-3" />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="email" className="text-right">Email</Label>
@@ -408,11 +444,42 @@ export function PortalStaffManagement({ exhibitor, cutoffDate, onStaffChange }: 
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="mobile" className="text-right">Mobile</Label>
-                <Input id="mobile" value={formData.mobile} onChange={e => setFormData({...formData, mobile: e.target.value})} className="col-span-3" />
+                <div className="col-span-3 flex gap-2">
+                  <Select 
+                    value={formData.mobile_country_code}
+                    onValueChange={(value) => setFormData({...formData, mobile_country_code: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Code" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="66">+66</SelectItem>
+                      <SelectItem value="63">+63</SelectItem>
+                      <SelectItem value="65">+65</SelectItem>
+                      <SelectItem value="60">+60</SelectItem>
+                      <SelectItem value="62">+62</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Input 
+                    id="mobile" 
+                    value={formData.mobile_number} 
+                    onChange={e => setFormData({...formData, mobile_number: e.target.value})} 
+                    className="flex-1"
+                    placeholder="Mobile number"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="company_name" className="text-right">Company</Label>
+                <Input id="company_name" value={formData.company_name} onChange={e => setFormData({...formData, company_name: e.target.value})} className="col-span-3" />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="company_tel" className="text-right">Company Tel</Label>
+                <Input id="company_tel" value={formData.company_tel} onChange={e => setFormData({...formData, company_tel: e.target.value})} className="col-span-3" />
               </div>
             </div>
             <DialogFooter>
-              <Button type="submit">{editingStaff ? 'Save Changes' : 'Add Staff'}</Button>
+              <Button type="submit">{editingMember ? 'Save Changes' : 'Add Staff'}</Button>
             </DialogFooter>
           </form>
         </DialogContent>
