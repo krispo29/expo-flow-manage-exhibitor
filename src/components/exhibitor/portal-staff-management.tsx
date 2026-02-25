@@ -40,7 +40,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Pencil, Trash2, Loader2, Printer, AlertTriangle, Lock, Mail } from 'lucide-react'
+import { Plus, Pencil, Trash2, Loader2, Printer, AlertTriangle, Lock, Mail, Users } from 'lucide-react'
 import { toast } from 'sonner'
 import { printBadge } from '@/utils/print-badge'
 
@@ -259,36 +259,39 @@ export function PortalStaffManagement({
   }
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div className="flex-1 max-w-sm">
-          <CardTitle className="flex items-center gap-2">
+    <Card className="overflow-hidden">
+      <div className="h-1 bg-gradient-to-r from-blue-500 to-indigo-500" />
+      <CardHeader className="flex flex-row items-center justify-between gap-4">
+        <div className="flex-1 max-w-sm space-y-1">
+          <CardTitle className="flex items-center gap-2 text-lg font-bold">
+            <Users className="h-4.5 w-4.5 text-blue-600 dark:text-blue-400" />
             Staff Members
             {isPastCutoff && (
-              <Badge variant="destructive" className="gap-1">
+              <Badge variant="destructive" className="gap-1 text-xs px-2 py-0.5 rounded-md">
                 <Lock className="h-3 w-3" />
                 Locked
               </Badge>
             )}
           </CardTitle>
-          <div className="mt-4 space-y-2">
-            <div className="flex justify-between items-center text-sm">
-              <span className="font-medium text-muted-foreground">Quota</span>
-              <span className="font-bold">
+          <div className="mt-3 space-y-2">
+            <div className="flex justify-between items-center text-xs">
+              <span className="font-medium text-muted-foreground">Quota Usage</span>
+              <span className="font-bold text-sm">
                 {staffCount} / {totalQuota}
                 {(exhibitorInfo?.over_quota || 0) > 0 && (
-                  <span className="text-muted-foreground font-normal ml-1">(+{exhibitorInfo?.over_quota} bonus)</span>
+                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold ml-1.5 bg-emerald-100 dark:bg-emerald-900/30 px-1.5 py-0.5 rounded-full">
+                    +{exhibitorInfo?.over_quota} bonus
+                  </span>
                 )}
               </span>
             </div>
             <Progress 
               value={totalQuota > 0 ? (staffCount / totalQuota) * 100 : 0} 
-              className="h-2"
-              // Optional: Add a subtle indicator if quota is full
-              indicatorColor={isQuotaFull ? "bg-red-500" : "bg-primary"}
+              className="h-2 rounded-full"
+              indicatorColor={isQuotaFull ? "bg-red-500" : "bg-blue-500"}
             />
             {isQuotaFull && (
-              <p className="text-xs text-red-500 font-medium">Quota limit reached</p>
+              <p className="text-[10px] text-red-500 font-semibold">Quota limit reached</p>
             )}
           </div>
         </div>
@@ -296,8 +299,9 @@ export function PortalStaffManagement({
           onClick={() => handleOpenDialog()} 
           size="sm" 
           disabled={isPastCutoff || isQuotaFull}
+          className="rounded-lg gap-1.5 text-xs h-8"
         >
-          <Plus className="mr-2 h-4 w-4" /> Add Staff
+          <Plus className="h-3.5 w-3.5" /> Add Staff
         </Button>
       </CardHeader>
       <CardContent>
@@ -315,9 +319,12 @@ export function PortalStaffManagement({
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         ) : memberList.length === 0 ? (
-          <div className="text-center p-8 text-muted-foreground">
-            <p className="text-lg font-medium">No staff members added yet</p>
-            <p className="text-sm mt-1">Click &ldquo;Add Staff&rdquo; to register your team members</p>
+          <div className="text-center py-12 px-8">
+            <div className="mx-auto w-14 h-14 bg-muted rounded-2xl flex items-center justify-center mb-4">
+              <Users className="h-7 w-7 text-muted-foreground/50" />
+            </div>
+            <p className="text-base font-semibold text-foreground">No staff members yet</p>
+            <p className="text-sm text-muted-foreground mt-1 max-w-xs mx-auto">Click &ldquo;Add Staff&rdquo; to register your team members for this exhibition.</p>
           </div>
         ) : (
           <Table>

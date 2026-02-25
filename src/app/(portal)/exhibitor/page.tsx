@@ -1,14 +1,13 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useAuthStore } from '@/store/useAuthStore'
 import { getExhibitorProfile, updateExhibitorProfile, getExhibitorCutoffStatus } from '@/app/actions/exhibitor'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Loader2, Building2, Save, Lock, Mail, Phone, Globe, MapPin, Ticket, Hash } from 'lucide-react'
+import { Loader2, Building2, Save, Lock, Mail, Phone, Globe, MapPin, Ticket, Hash, Pencil, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { PortalStaffManagement } from '@/components/exhibitor/portal-staff-management'
 
@@ -62,7 +61,6 @@ interface CutoffStatus {
 }
 
 export default function ExhibitorPortalPage() {
-  const { user } = useAuthStore()
   const [exhibitorInfo, setExhibitorInfo] = useState<ExhibitorInfo | null>(null)
   const [members, setMembers] = useState<ExhibitorMember[]>([])
   const [cutoffStatus, setCutoffStatus] = useState<CutoffStatus | null>(null)
@@ -70,7 +68,6 @@ export default function ExhibitorPortalPage() {
   const [saving, setSaving] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   
-  // Editable contact fields
   const [editForm, setEditForm] = useState({
     company_name: '',
     address: '',
@@ -91,7 +88,6 @@ export default function ExhibitorPortalPage() {
   const fetchData = useCallback(async () => {
     setLoading(true)
     
-    // Fetch profile and cutoff status in parallel
     const [profileResult, cutoffResult] = await Promise.all([
       getExhibitorProfile(),
       getExhibitorCutoffStatus()
@@ -173,7 +169,10 @@ export default function ExhibitorPortalPage() {
   if (loading) {
     return (
       <div className="flex h-[60vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-emerald-500" />
+          <p className="text-sm text-muted-foreground">Loading your portal...</p>
+        </div>
       </div>
     )
   }
@@ -181,260 +180,163 @@ export default function ExhibitorPortalPage() {
   if (!exhibitorInfo) {
     return (
       <div className="flex h-[60vh] items-center justify-center">
-        <div className="text-center">
-          <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+        <div className="text-center animate-fade-in-up">
+          <div className="mx-auto w-16 h-16 bg-muted rounded-2xl flex items-center justify-center mb-4">
+            <Building2 className="h-8 w-8 text-muted-foreground" />
+          </div>
           <h2 className="text-xl font-semibold">No Exhibitor Account Found</h2>
-          <p className="text-muted-foreground mt-2">Your account is not linked to any exhibitor company.</p>
+          <p className="text-muted-foreground mt-2 max-w-sm">Your account is not linked to any exhibitor company. Contact your event organizer for assistance.</p>
         </div>
       </div>
     )
   }
 
   const isPastCutoff = cutoffStatus ? !cutoffStatus.is_editable : false
+  const totalQuota = (exhibitorInfo.quota || 0) + (exhibitorInfo.over_quota || 0)
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">{exhibitorInfo.company_name}</h1>
-          <p className="text-muted-foreground mt-1 flex items-center gap-2">
-            <span className="font-mono text-sm">#{exhibitorInfo.exhibitor_sequence}</span>
-            <span>•</span>
-            <span>Booth {exhibitorInfo.booth_no}</span>
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          {isPastCutoff ? (
-            <Badge variant="destructive" className="gap-1 text-sm px-3 py-1">
-              <Lock className="h-3.5 w-3.5" />
-              Editing Locked
-            </Badge>
-          ) : (
-            <Badge variant="outline" className="gap-1 text-sm px-3 py-1 text-green-700 border-green-300 bg-green-50">
-              Editing Open
-            </Badge>
-          )}
-          {cutoffStatus?.cutoff_date && (
-            <span className="text-sm text-muted-foreground">
-              until {new Date(cutoffStatus.cutoff_date).toLocaleDateString()}
-            </span>
-          )}
+      <div className="animate-fade-in-up">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md shadow-emerald-500/20">
+                <Building2 className="h-5 w-5" />
+              </div>
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">{exhibitorInfo.company_name}</h1>
+                <p className="text-muted-foreground text-sm flex items-center gap-2 mt-0.5">
+                  <span className="font-mono text-xs bg-muted px-1.5 py-0.5 rounded">#{exhibitorInfo.exhibitor_sequence}</span>
+                  <span className="text-muted-foreground/40">•</span>
+                  <span>Booth {exhibitorInfo.booth_no}</span>
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            {isPastCutoff ? (
+              <Badge variant="destructive" className="gap-1.5 text-xs px-3 py-1.5 rounded-lg font-semibold">
+                <Lock className="h-3 w-3" />
+                Editing Locked
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="gap-1.5 text-xs px-3 py-1.5 rounded-lg font-semibold text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950/30">
+                Editing Open
+              </Badge>
+            )}
+            {cutoffStatus?.cutoff_date && (
+              <span className="text-xs text-muted-foreground">
+                until {new Date(cutoffStatus.cutoff_date).toLocaleDateString()}
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Stats Cards Row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="flex items-center p-6 gap-4">
-            <div className="p-3 bg-primary/10 rounded-full text-primary">
-              <Hash className="h-6 w-6" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Username</p>
-              <p className="text-2xl font-bold tracking-tight">{exhibitorInfo.username || '—'}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center p-6 gap-4">
-            <div className="p-3 bg-primary/10 rounded-full text-primary">
-              <MapPin className="h-6 w-6" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Booth Number</p>
-              <p className="text-2xl font-bold tracking-tight">{exhibitorInfo.booth_no || '—'}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center p-6 gap-4">
-            <div className="p-3 bg-primary/10 rounded-full text-primary">
-              <Ticket className="h-6 w-6" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Staff Quota</p>
-              <div className="flex items-baseline gap-2">
-                <p className="text-2xl font-bold tracking-tight">{exhibitorInfo.quota}</p>
-                {exhibitorInfo.over_quota > 0 && (
-                  <span className="text-sm font-medium text-green-600 bg-green-100 px-2 py-0.5 rounded-full">
-                    +{exhibitorInfo.over_quota} bonus
-                  </span>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 animate-fade-in-up delay-100">
+        <StatsCard
+          icon={<Hash className="h-5 w-5" />}
+          label="Username"
+          value={exhibitorInfo.username || '—'}
+          iconBg="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+        />
+        <StatsCard
+          icon={<MapPin className="h-5 w-5" />}
+          label="Booth Number"
+          value={exhibitorInfo.booth_no || '—'}
+          iconBg="bg-blue-500/10 text-blue-600 dark:text-blue-400"
+        />
+        <StatsCard
+          icon={<Ticket className="h-5 w-5" />}
+          label="Staff Quota"
+          value={`${members.length} / ${totalQuota}`}
+          iconBg="bg-amber-500/10 text-amber-600 dark:text-amber-400"
+          extra={exhibitorInfo.over_quota > 0 ? (
+            <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30 px-1.5 py-0.5 rounded-full">
+              +{exhibitorInfo.over_quota} bonus
+            </span>
+          ) : undefined}
+        />
       </div>
 
       {/* Company Information Card */}
-      <Card className="border-t-4 border-t-primary shadow-sm hover:shadow transition-shadow">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
+      <Card className="overflow-hidden animate-fade-in-up delay-200">
+        <div className="h-1 bg-gradient-to-r from-emerald-500 to-teal-500" />
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           <div className="space-y-1">
-            <CardTitle className="flex items-center gap-2 text-xl font-bold">
-              <Building2 className="h-5 w-5 text-primary" />
+            <CardTitle className="flex items-center gap-2 text-lg font-bold">
+              <Building2 className="h-4.5 w-4.5 text-emerald-600 dark:text-emerald-400" />
               Company Information
             </CardTitle>
-            <CardDescription>
-              {isEditing ? 'Update your company details below.' : 'View your company details. Click Edit to make changes.'}
+            <CardDescription className="text-xs">
+              {isEditing ? 'Update your company details below.' : 'Your company profile and contact details.'}
             </CardDescription>
           </div>
           {!isPastCutoff && !isEditing && (
-            <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
-              Edit Info
+            <Button variant="outline" size="sm" onClick={() => setIsEditing(true)} className="gap-1.5 rounded-lg text-xs h-8">
+              <Pencil className="h-3 w-3" />
+              Edit
+            </Button>
+          )}
+          {isEditing && (
+            <Button variant="ghost" size="sm" onClick={handleCancel} className="gap-1.5 rounded-lg text-xs h-8 text-muted-foreground">
+              <X className="h-3 w-3" />
+              Cancel
             </Button>
           )}
         </CardHeader>
-        <CardContent className="pt-6">
+        <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Field Section: Basic Info */}
-            <div className="space-y-4">
-              <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                <Building2 className="h-4 w-4" />
-                Basic Details
-              </h3>
-              <div className="space-y-4 rounded-lg border p-4 bg-muted/20">
-                <div className="space-y-2">
-                  <Label htmlFor="company_name" className="text-xs text-muted-foreground uppercase">Company Name</Label>
-                  {isEditing ? (
-                    <Input id="company_name" value={editForm.company_name} onChange={e => setEditForm({...editForm, company_name: e.target.value})} className="bg-background" />
-                  ) : (
-                    <div className="font-medium text-base">{exhibitorInfo.company_name}</div>
-                  )}
-                </div>
-                {isEditing && (
-                  <div className="space-y-2">
-                    <Label htmlFor="booth_no" className="text-xs text-muted-foreground uppercase">Booth No.</Label>
-                    <Input id="booth_no" value={editForm.booth_no} onChange={e => setEditForm({...editForm, booth_no: e.target.value})} className="bg-background" />
-                  </div>
-                )}
-              </div>
-            </div>
+            {/* Basic Details */}
+            <FieldSection icon={<Building2 className="h-3.5 w-3.5" />} title="Basic Details">
+              <FieldItem label="Company Name" value={exhibitorInfo.company_name} editValue={editForm.company_name} editing={isEditing} onChange={v => setEditForm({...editForm, company_name: v})} />
+              {isEditing && (
+                <FieldItem label="Booth No." value={exhibitorInfo.booth_no} editValue={editForm.booth_no} editing={isEditing} onChange={v => setEditForm({...editForm, booth_no: v})} />
+              )}
+            </FieldSection>
 
-            {/* Field Section: Address */}
-            <div className="space-y-4">
-              <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                <MapPin className="h-4 w-4" />
-                Address
-              </h3>
-              <div className="space-y-4 rounded-lg border p-4 bg-muted/20">
-                <div className="space-y-2">
-                  <Label htmlFor="address" className="text-xs text-muted-foreground uppercase">Address</Label>
-                  {isEditing ? (
-                    <Input id="address" value={editForm.address} onChange={e => setEditForm({...editForm, address: e.target.value})} className="bg-background" />
-                  ) : (
-                    <div className="text-sm whitespace-pre-wrap">{exhibitorInfo.address || '—'}</div>
-                  )}
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="city" className="text-xs text-muted-foreground uppercase">City</Label>
-                    {isEditing ? (
-                      <Input id="city" value={editForm.city} onChange={e => setEditForm({...editForm, city: e.target.value})} className="bg-background" />
-                    ) : (
-                      <div className="text-sm">{exhibitorInfo.city || '—'}</div>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="province" className="text-xs text-muted-foreground uppercase">Province</Label>
-                    {isEditing ? (
-                      <Input id="province" value={editForm.province} onChange={e => setEditForm({...editForm, province: e.target.value})} className="bg-background" />
-                    ) : (
-                      <div className="text-sm">{exhibitorInfo.province || '—'}</div>
-                    )}
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="country" className="text-xs text-muted-foreground uppercase">Country</Label>
-                    {isEditing ? (
-                      <Input id="country" value={editForm.country} onChange={e => setEditForm({...editForm, country: e.target.value})} className="bg-background" />
-                    ) : (
-                      <div className="text-sm">{exhibitorInfo.country || '—'}</div>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="postal_code" className="text-xs text-muted-foreground uppercase">Postal Code</Label>
-                    {isEditing ? (
-                      <Input id="postal_code" value={editForm.postal_code} onChange={e => setEditForm({...editForm, postal_code: e.target.value})} className="bg-background" />
-                    ) : (
-                      <div className="text-sm">{exhibitorInfo.postal_code || '—'}</div>
-                    )}
-                  </div>
-                </div>
+            {/* Address */}
+            <FieldSection icon={<MapPin className="h-3.5 w-3.5" />} title="Address">
+              <FieldItem label="Address" value={exhibitorInfo.address} editValue={editForm.address} editing={isEditing} onChange={v => setEditForm({...editForm, address: v})} />
+              <div className="grid grid-cols-2 gap-3">
+                <FieldItem label="City" value={exhibitorInfo.city} editValue={editForm.city} editing={isEditing} onChange={v => setEditForm({...editForm, city: v})} />
+                <FieldItem label="Province" value={exhibitorInfo.province} editValue={editForm.province} editing={isEditing} onChange={v => setEditForm({...editForm, province: v})} />
               </div>
-            </div>
+              <div className="grid grid-cols-2 gap-3">
+                <FieldItem label="Country" value={exhibitorInfo.country} editValue={editForm.country} editing={isEditing} onChange={v => setEditForm({...editForm, country: v})} />
+                <FieldItem label="Postal Code" value={exhibitorInfo.postal_code} editValue={editForm.postal_code} editing={isEditing} onChange={v => setEditForm({...editForm, postal_code: v})} />
+              </div>
+            </FieldSection>
 
-            {/* Field Section: Contact */}
-            <div className="space-y-4">
-              <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                <Mail className="h-4 w-4" />
-                Contact Info
-              </h3>
-              <div className="space-y-4 rounded-lg border p-4 bg-muted/20">
-                <div className="space-y-2">
-                  <Label htmlFor="contact_person" className="text-xs text-muted-foreground uppercase">Contact Person</Label>
-                  {isEditing ? (
-                    <Input id="contact_person" value={editForm.contact_person} onChange={e => setEditForm({...editForm, contact_person: e.target.value})} className="bg-background" />
-                  ) : (
-                    <div className="text-sm font-medium">{exhibitorInfo.contact_person || '—'}</div>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="contact_email" className="text-xs text-muted-foreground uppercase">Email</Label>
-                  {isEditing ? (
-                    <Input id="contact_email" type="email" value={editForm.contact_email} onChange={e => setEditForm({...editForm, contact_email: e.target.value})} className="bg-background" />
-                  ) : (
-                    <div className="text-sm">{exhibitorInfo.contact_email || '—'}</div>
-                  )}
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="tel" className="text-xs text-muted-foreground uppercase">Phone</Label>
-                    {isEditing ? (
-                      <Input id="tel" placeholder="Phone" value={editForm.tel} onChange={e => setEditForm({...editForm, tel: e.target.value})} className="bg-background" />
-                    ) : (
-                      <div className="text-sm flex items-center gap-2">
-                        <Phone className="h-3 w-3 text-muted-foreground" />
-                        {exhibitorInfo.tel || '—'}
-                      </div>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="fax" className="text-xs text-muted-foreground uppercase">Fax</Label>
-                    {isEditing ? (
-                      <Input id="fax" placeholder="Fax" value={editForm.fax} onChange={e => setEditForm({...editForm, fax: e.target.value})} className="bg-background" />
-                    ) : (
-                      <div className="text-sm">{exhibitorInfo.fax || '—'}</div>
-                    )}
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="website" className="text-xs text-muted-foreground uppercase">Website</Label>
-                  {isEditing ? (
-                    <Input id="website" value={editForm.website} onChange={e => setEditForm({...editForm, website: e.target.value})} className="bg-background" />
-                  ) : (
-                    <div className="text-sm flex items-center gap-2">
-                      <Globe className="h-3 w-3 text-muted-foreground" />
-                      {exhibitorInfo.website ? (
-                        <a href={exhibitorInfo.website.startsWith('http') ? exhibitorInfo.website : `https://${exhibitorInfo.website}`} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                          {exhibitorInfo.website}
-                        </a>
-                      ) : '—'}
-                    </div>
-                  )}
-                </div>
+            {/* Contact Info */}
+            <FieldSection icon={<Mail className="h-3.5 w-3.5" />} title="Contact Info">
+              <FieldItem label="Contact Person" value={exhibitorInfo.contact_person} editValue={editForm.contact_person} editing={isEditing} onChange={v => setEditForm({...editForm, contact_person: v})} />
+              <FieldItem label="Email" value={exhibitorInfo.contact_email} editValue={editForm.contact_email} editing={isEditing} onChange={v => setEditForm({...editForm, contact_email: v})} type="email" />
+              <div className="grid grid-cols-2 gap-3">
+                <FieldItem label="Phone" value={exhibitorInfo.tel} editValue={editForm.tel} editing={isEditing} onChange={v => setEditForm({...editForm, tel: v})} icon={<Phone className="h-3 w-3 text-muted-foreground" />} />
+                <FieldItem label="Fax" value={exhibitorInfo.fax} editValue={editForm.fax} editing={isEditing} onChange={v => setEditForm({...editForm, fax: v})} />
               </div>
-            </div>
+              <FieldItem
+                label="Website"
+                value={exhibitorInfo.website}
+                editValue={editForm.website}
+                editing={isEditing}
+                onChange={v => setEditForm({...editForm, website: v})}
+                icon={<Globe className="h-3 w-3 text-muted-foreground" />}
+                isLink
+              />
+            </FieldSection>
           </div>
 
           {isEditing && (
-            <div className="mt-8 flex justify-end gap-3 border-t pt-6">
-              <Button variant="ghost" onClick={handleCancel} disabled={saving}>
+            <div className="mt-8 flex justify-end gap-3 border-t pt-5">
+              <Button variant="ghost" onClick={handleCancel} disabled={saving} className="rounded-lg">
                 Cancel
               </Button>
-              <Button onClick={handleSaveContact} disabled={saving}>
-                {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+              <Button onClick={handleSaveContact} disabled={saving} className="rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white gap-2 shadow-md shadow-emerald-600/20">
+                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                 Save Changes
               </Button>
             </div>
@@ -443,12 +345,106 @@ export default function ExhibitorPortalPage() {
       </Card>
 
       {/* Staff Management */}
-      <PortalStaffManagement 
-        exhibitorInfo={exhibitorInfo}
-        members={members}
-        cutoffStatus={cutoffStatus}
-        onStaffChange={fetchData}
-      />
+      <div className="animate-fade-in-up delay-300">
+        <PortalStaffManagement 
+          exhibitorInfo={exhibitorInfo}
+          members={members}
+          cutoffStatus={cutoffStatus}
+          onStaffChange={fetchData}
+        />
+      </div>
+    </div>
+  )
+}
+
+/* ─── Sub-components ───────────────────────────────────────── */
+
+function StatsCard({ icon, label, value, iconBg, extra }: Readonly<{
+  icon: React.ReactNode
+  label: string
+  value: string
+  iconBg: string
+  extra?: React.ReactNode
+}>) {
+  return (
+    <Card className="overflow-hidden border-border/50 hover:border-border transition-colors duration-200">
+      <CardContent className="flex items-center p-5 gap-4">
+        <div className={`flex items-center justify-center w-11 h-11 rounded-xl ${iconBg} shrink-0`}>
+          {icon}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-medium text-muted-foreground mb-0.5">{label}</p>
+          <div className="flex items-baseline gap-2">
+            <p className="text-xl font-bold tracking-tight truncate">{value}</p>
+            {extra}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+function FieldSection({ icon, title, children }: Readonly<{
+  icon: React.ReactNode
+  title: string
+  children: React.ReactNode
+}>) {
+  return (
+    <div className="space-y-3">
+      <h3 className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+        {icon}
+        {title}
+      </h3>
+      <div className="space-y-3 rounded-xl border border-border/50 p-4 bg-muted/20">
+        {children}
+      </div>
+    </div>
+  )
+}
+
+function FieldItem({ label, value, editValue, editing, onChange, type, icon, isLink }: Readonly<{
+  label: string
+  value?: string
+  editValue?: string
+  editing: boolean
+  onChange?: (v: string) => void
+  type?: string
+  icon?: React.ReactNode
+  isLink?: boolean
+}>) {
+  if (editing) {
+    return (
+      <div className="space-y-1.5">
+        <Label className="text-[10px] text-muted-foreground uppercase font-medium tracking-wide">{label}</Label>
+        <Input
+          value={editValue || ''}
+          onChange={e => onChange?.(e.target.value)}
+          type={type || 'text'}
+          className="h-9 text-sm bg-background rounded-lg border-border/60"
+        />
+      </div>
+    )
+  }
+
+  const displayValue = value || '—'
+  return (
+    <div className="space-y-1">
+      <Label className="text-[10px] text-muted-foreground uppercase font-medium tracking-wide">{label}</Label>
+      <div className="text-sm font-medium flex items-center gap-1.5">
+        {icon}
+        {isLink && value ? (
+          <a
+            href={value.startsWith('http') ? value : `https://${value}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-emerald-600 dark:text-emerald-400 hover:underline truncate"
+          >
+            {value}
+          </a>
+        ) : (
+          <span className="truncate">{displayValue}</span>
+        )}
+      </div>
     </div>
   )
 }

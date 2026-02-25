@@ -119,10 +119,114 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
-    @apply border-border outline-ring/50;
   }
   body {
     @apply bg-background text-foreground;
-    @apply bg-background text-foreground;
   }
+}
+
+/* Portal Navbar */
+.portal-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  height: 3.75rem;
+  border-bottom: 1px solid var(--border);
+  background: oklch(from var(--background) l c h / 80%);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+}
+
+.portal-navbar-inner {
+  max-width: 72rem;
+  margin: 0 auto;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+}
+
+.portal-main {
+  padding: 2rem 1.5rem 4rem;
+}
+
+/* Animations */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s ease-out both;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.4s ease-out both;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.4s ease-out both;
+}
+
+/* Staggered animation delays */
+.delay-100 {
+  animation-delay: 100ms;
+}
+.delay-200 {
+  animation-delay: 200ms;
+}
+.delay-300 {
+  animation-delay: 300ms;
+}
+.delay-400 {
+  animation-delay: 400ms;
+}
+.delay-500 {
+  animation-delay: 500ms;
+}
+
+/* Login page gradient */
+.login-gradient-bg {
+  background: linear-gradient(
+    135deg,
+    hsl(170 40% 20%) 0%,
+    hsl(180 30% 28%) 50%,
+    hsl(160 35% 22%) 100%
+  );
+}
+
+.dark .login-gradient-bg {
+  background: linear-gradient(
+    135deg,
+    hsl(170 35% 12%) 0%,
+    hsl(180 25% 16%) 50%,
+    hsl(160 30% 10%) 100%
+  );
 }
