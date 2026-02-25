@@ -273,7 +273,7 @@ export function PortalStaffManagement({
           </CardTitle>
           <div className="mt-4 space-y-2">
             <div className="flex justify-between items-center text-sm">
-              <span className="font-medium text-muted-foreground">Registration Quota</span>
+              <span className="font-medium text-muted-foreground">Quota</span>
               <span className="font-bold">
                 {staffCount} / {totalQuota}
                 {(exhibitorInfo?.over_quota || 0) > 0 && (

@@ -231,7 +231,7 @@ export default function ExhibitorPortalPage() {
               <Hash className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Registration ID</p>
+              <p className="text-sm font-medium text-muted-foreground">Username</p>
               <p className="text-2xl font-bold tracking-tight">{exhibitorInfo.username || '—'}</p>
             </div>
           </CardContent>
