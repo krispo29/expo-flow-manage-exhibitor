@@ -8,7 +8,8 @@ import {
   resendMemberEmailConfirmation 
 } from '@/app/actions/exhibitor'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Progress } from '@/components/ui/progress'
 import {
   Table,
   TableBody,
@@ -41,12 +42,13 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Plus, Pencil, Trash2, Loader2, Printer, AlertTriangle, Lock, Mail } from 'lucide-react'
 import { toast } from 'sonner'
-import Link from 'next/link'
+import { printBadge } from '@/utils/print-badge'
 
 interface ExhibitorInfo {
   exhibitor_uuid: string
   project_uuid: string
   company_name: string
+  country?: string
   booth_no: string
   quota: number
   over_quota: number
@@ -259,7 +261,7 @@ export function PortalStaffManagement({
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <div>
+        <div className="flex-1 max-w-sm">
           <CardTitle className="flex items-center gap-2">
             Staff Members
             {isPastCutoff && (
@@ -269,18 +271,26 @@ export function PortalStaffManagement({
               </Badge>
             )}
           </CardTitle>
-          <CardDescription className="mt-1">
-            <span className="font-medium">
-              {staffCount} / {exhibitorInfo?.quota || 0} 
-            </span>
-            {(exhibitorInfo?.over_quota || 0) > 0 && (
-              <span className="text-muted-foreground"> + {exhibitorInfo?.over_quota} over quota</span>
-            )}
-            {' '}staff registered
+          <div className="mt-4 space-y-2">
+            <div className="flex justify-between items-center text-sm">
+              <span className="font-medium text-muted-foreground">Registration Quota</span>
+              <span className="font-bold">
+                {staffCount} / {totalQuota}
+                {(exhibitorInfo?.over_quota || 0) > 0 && (
+                  <span className="text-muted-foreground font-normal ml-1">(+{exhibitorInfo?.over_quota} bonus)</span>
+                )}
+              </span>
+            </div>
+            <Progress 
+              value={totalQuota > 0 ? (staffCount / totalQuota) * 100 : 0} 
+              className="h-2"
+              // Optional: Add a subtle indicator if quota is full
+              indicatorColor={isQuotaFull ? "bg-red-500" : "bg-primary"}
+            />
             {isQuotaFull && (
-              <Badge variant="secondary" className="ml-2 text-xs">Quota Full</Badge>
+              <p className="text-xs text-red-500 font-medium">Quota limit reached</p>
             )}
-          </CardDescription>
+          </div>
         </div>
         <Button 
           onClick={() => handleOpenDialog()} 
@@ -340,10 +350,22 @@ export function PortalStaffManagement({
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
-                      <Button variant="ghost" size="icon" asChild title="Print Badge">
-                        <Link href={`/exhibitor/print-badge/${member.member_uuid}`}>
-                          <Printer className="h-4 w-4" />
-                        </Link>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => {
+                          printBadge({
+                            firstName: member.first_name || '',
+                            lastName: member.last_name || '',
+                            companyName: member.company_name || exhibitorInfo?.company_name || '',
+                            country: member.company_country || exhibitorInfo?.country || 'THAILAND',
+                            registrationCode: member.registration_code,
+                            category: 'EXHIBITOR',
+                          })
+                        }}
+                        title="Print Badge"
+                      >
+                        <Printer className="h-4 w-4" />
                       </Button>
                       <Button 
                         variant="ghost" 
@@ -381,17 +403,17 @@ export function PortalStaffManagement({
       </CardContent>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>{editingMember ? 'Edit Staff' : 'Add Staff'}</DialogTitle>
+            <DialogTitle className="text-xl">{editingMember ? 'Edit Staff Member' : 'Add New Staff Member'}</DialogTitle>
             <DialogDescription>
-              {editingMember ? 'Update staff details.' : `Add a new staff member. (${staffCount}/${totalQuota} slots used)`}
+              {editingMember ? 'Update the details for this staff member below.' : `Fill in the details to register a new staff member. You have ${totalQuota - staffCount} slots remaining.`}
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSubmit}>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="title" className="text-right">Title</Label>
+          <form onSubmit={handleSubmit} className="mt-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 py-2">
+              <div className="space-y-2">
+                <Label htmlFor="title" className="text-xs font-semibold uppercase text-muted-foreground">Title <span className="text-red-500">*</span></Label>
                 <div className="col-span-3 flex gap-2">
                   <Select 
                     value={formData.title} 
@@ -426,25 +448,30 @@ export function PortalStaffManagement({
                   )}
                 </div>
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="first_name" className="text-right">First Name</Label>
-                <Input id="first_name" value={formData.first_name} onChange={e => setFormData({...formData, first_name: e.target.value})} className="col-span-3" required />
+
+              <div className="space-y-2">
+                <Label htmlFor="first_name" className="text-xs font-semibold uppercase text-muted-foreground">First Name <span className="text-red-500">*</span></Label>
+                <Input id="first_name" value={formData.first_name} onChange={e => setFormData({...formData, first_name: e.target.value})} className="bg-muted/50 focus:bg-background" required />
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="last_name" className="text-right">Last Name</Label>
-                <Input id="last_name" value={formData.last_name} onChange={e => setFormData({...formData, last_name: e.target.value})} className="col-span-3" required />
+
+              <div className="space-y-2">
+                <Label htmlFor="last_name" className="text-xs font-semibold uppercase text-muted-foreground">Last Name <span className="text-red-500">*</span></Label>
+                <Input id="last_name" value={formData.last_name} onChange={e => setFormData({...formData, last_name: e.target.value})} className="bg-muted/50 focus:bg-background" required />
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="job_position" className="text-right">Position</Label>
-                <Input id="job_position" value={formData.job_position} onChange={e => setFormData({...formData, job_position: e.target.value})} className="col-span-3" />
+
+              <div className="space-y-2">
+                <Label htmlFor="job_position" className="text-xs font-semibold uppercase text-muted-foreground">Position</Label>
+                <Input id="job_position" value={formData.job_position} onChange={e => setFormData({...formData, job_position: e.target.value})} className="bg-muted/50 focus:bg-background" />
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="email" className="text-right">Email</Label>
-                <Input id="email" type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="col-span-3" />
+
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="email" className="text-xs font-semibold uppercase text-muted-foreground">Email Address</Label>
+                <Input id="email" type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="bg-muted/50 focus:bg-background" placeholder="email@example.com" />
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="mobile" className="text-right">Mobile</Label>
-                <div className="col-span-3 flex gap-2">
+
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="mobile" className="text-xs font-semibold uppercase text-muted-foreground">Mobile Number</Label>
+                <div className="flex gap-2">
                   <Select 
                     value={formData.mobile_country_code}
                     onValueChange={(value) => setFormData({...formData, mobile_country_code: value})}
@@ -464,21 +491,23 @@ export function PortalStaffManagement({
                     id="mobile" 
                     value={formData.mobile_number} 
                     onChange={e => setFormData({...formData, mobile_number: e.target.value})} 
-                    className="flex-1"
-                    placeholder="Mobile number"
+                    className="flex-1 bg-muted/50 focus:bg-background"
+                    placeholder="Enter mobile number without leading zero"
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="company_name" className="text-right">Company</Label>
-                <Input id="company_name" value={formData.company_name} onChange={e => setFormData({...formData, company_name: e.target.value})} className="col-span-3" />
+
+              <div className="space-y-2">
+                <Label htmlFor="company_name" className="text-xs font-semibold uppercase text-muted-foreground">Company Name</Label>
+                <Input id="company_name" value={formData.company_name} onChange={e => setFormData({...formData, company_name: e.target.value})} className="bg-muted/50 focus:bg-background" placeholder={exhibitorInfo?.company_name || 'Company Name'} />
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="company_tel" className="text-right">Company Tel</Label>
-                <Input id="company_tel" value={formData.company_tel} onChange={e => setFormData({...formData, company_tel: e.target.value})} className="col-span-3" />
+
+              <div className="space-y-2">
+                <Label htmlFor="company_tel" className="text-xs font-semibold uppercase text-muted-foreground">Company Telephone</Label>
+                <Input id="company_tel" value={formData.company_tel} onChange={e => setFormData({...formData, company_tel: e.target.value})} className="bg-muted/50 focus:bg-background" placeholder="e.g. +66 2 123 4567" />
               </div>
             </div>
-            <DialogFooter>
+            <DialogFooter className="mt-6 border-t pt-4">
               <Button type="submit">{editingMember ? 'Save Changes' : 'Add Staff'}</Button>
             </DialogFooter>
           </form>

@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Loader2, Building2, Save, Lock, Mail, Phone, Globe, MapPin } from 'lucide-react'
+import { Loader2, Building2, Save, Lock, Mail, Phone, Globe, MapPin, Ticket, Hash } from 'lucide-react'
 import { toast } from 'sonner'
 import { PortalStaffManagement } from '@/components/exhibitor/portal-staff-management'
 
@@ -223,9 +223,53 @@ export default function ExhibitorPortalPage() {
         </div>
       </div>
 
+      {/* Stats Cards Row */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="flex items-center p-6 gap-4">
+            <div className="p-3 bg-primary/10 rounded-full text-primary">
+              <Hash className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Registration ID</p>
+              <p className="text-2xl font-bold tracking-tight">{exhibitorInfo.username || '—'}</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="flex items-center p-6 gap-4">
+            <div className="p-3 bg-primary/10 rounded-full text-primary">
+              <MapPin className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Booth Number</p>
+              <p className="text-2xl font-bold tracking-tight">{exhibitorInfo.booth_no || '—'}</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="flex items-center p-6 gap-4">
+            <div className="p-3 bg-primary/10 rounded-full text-primary">
+              <Ticket className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Staff Quota</p>
+              <div className="flex items-baseline gap-2">
+                <p className="text-2xl font-bold tracking-tight">{exhibitorInfo.quota}</p>
+                {exhibitorInfo.over_quota > 0 && (
+                  <span className="text-sm font-medium text-green-600 bg-green-100 px-2 py-0.5 rounded-full">
+                    +{exhibitorInfo.over_quota} bonus
+                  </span>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Company Information Card */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <Card className="border-t-4 border-t-primary shadow-sm hover:shadow transition-shadow">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
           <div className="space-y-1">
             <CardTitle className="flex items-center gap-2 text-xl font-bold">
               <Building2 className="h-5 w-5 text-primary" />
@@ -245,139 +289,141 @@ export default function ExhibitorPortalPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Field Section: Basic Info */}
             <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider border-b pb-1">Basic Details</h3>
-              <div className="space-y-2">
-                <Label htmlFor="username">Registration ID</Label>
-                <div className="p-2 bg-muted rounded-md text-sm font-mono">{exhibitorInfo.username || '—'}</div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="company_name">Company Name</Label>
-                {isEditing ? (
-                  <Input id="company_name" value={editForm.company_name} onChange={e => setEditForm({...editForm, company_name: e.target.value})} />
-                ) : (
-                  <div className="p-2 bg-muted rounded-md text-sm font-medium">{exhibitorInfo.company_name}</div>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="booth_no">Booth No.</Label>
-                {isEditing ? (
-                  <Input id="booth_no" value={editForm.booth_no} onChange={e => setEditForm({...editForm, booth_no: e.target.value})} />
-                ) : (
-                  <div className="p-2 bg-muted rounded-md text-sm">{exhibitorInfo.booth_no}</div>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label>Quota</Label>
-                <div className="p-2 bg-muted rounded-md text-sm">
-                  {exhibitorInfo.quota} 
-                  {exhibitorInfo.over_quota > 0 && (
-                    <span className="text-muted-foreground"> + {exhibitorInfo.over_quota} over quota</span>
+              <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                <Building2 className="h-4 w-4" />
+                Basic Details
+              </h3>
+              <div className="space-y-4 rounded-lg border p-4 bg-muted/20">
+                <div className="space-y-2">
+                  <Label htmlFor="company_name" className="text-xs text-muted-foreground uppercase">Company Name</Label>
+                  {isEditing ? (
+                    <Input id="company_name" value={editForm.company_name} onChange={e => setEditForm({...editForm, company_name: e.target.value})} className="bg-background" />
+                  ) : (
+                    <div className="font-medium text-base">{exhibitorInfo.company_name}</div>
                   )}
                 </div>
+                {isEditing && (
+                  <div className="space-y-2">
+                    <Label htmlFor="booth_no" className="text-xs text-muted-foreground uppercase">Booth No.</Label>
+                    <Input id="booth_no" value={editForm.booth_no} onChange={e => setEditForm({...editForm, booth_no: e.target.value})} className="bg-background" />
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Field Section: Address */}
             <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider border-b pb-1 flex items-center gap-2">
+              <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
                 <MapPin className="h-4 w-4" />
                 Address
               </h3>
-              <div className="space-y-2">
-                <Label htmlFor="address">Address</Label>
-                {isEditing ? (
-                  <Input id="address" value={editForm.address} onChange={e => setEditForm({...editForm, address: e.target.value})} />
-                ) : (
-                  <div className="p-2 bg-muted rounded-md text-sm">{exhibitorInfo.address || '—'}</div>
-                )}
-              </div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-4 rounded-lg border p-4 bg-muted/20">
                 <div className="space-y-2">
-                  <Label htmlFor="city">City</Label>
+                  <Label htmlFor="address" className="text-xs text-muted-foreground uppercase">Address</Label>
                   {isEditing ? (
-                    <Input id="city" value={editForm.city} onChange={e => setEditForm({...editForm, city: e.target.value})} />
+                    <Input id="address" value={editForm.address} onChange={e => setEditForm({...editForm, address: e.target.value})} className="bg-background" />
                   ) : (
-                    <div className="p-2 bg-muted rounded-md text-sm">{exhibitorInfo.city || '—'}</div>
+                    <div className="text-sm whitespace-pre-wrap">{exhibitorInfo.address || '—'}</div>
                   )}
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="province">Province</Label>
-                  {isEditing ? (
-                    <Input id="province" value={editForm.province} onChange={e => setEditForm({...editForm, province: e.target.value})} />
-                  ) : (
-                    <div className="p-2 bg-muted rounded-md text-sm">{exhibitorInfo.province || '—'}</div>
-                  )}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="city" className="text-xs text-muted-foreground uppercase">City</Label>
+                    {isEditing ? (
+                      <Input id="city" value={editForm.city} onChange={e => setEditForm({...editForm, city: e.target.value})} className="bg-background" />
+                    ) : (
+                      <div className="text-sm">{exhibitorInfo.city || '—'}</div>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="province" className="text-xs text-muted-foreground uppercase">Province</Label>
+                    {isEditing ? (
+                      <Input id="province" value={editForm.province} onChange={e => setEditForm({...editForm, province: e.target.value})} className="bg-background" />
+                    ) : (
+                      <div className="text-sm">{exhibitorInfo.province || '—'}</div>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-2">
-                  <Label htmlFor="country">Country</Label>
-                  {isEditing ? (
-                    <Input id="country" value={editForm.country} onChange={e => setEditForm({...editForm, country: e.target.value})} />
-                  ) : (
-                    <div className="p-2 bg-muted rounded-md text-sm">{exhibitorInfo.country || '—'}</div>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="postal_code">Postal Code</Label>
-                  {isEditing ? (
-                    <Input id="postal_code" value={editForm.postal_code} onChange={e => setEditForm({...editForm, postal_code: e.target.value})} />
-                  ) : (
-                    <div className="p-2 bg-muted rounded-md text-sm">{exhibitorInfo.postal_code || '—'}</div>
-                  )}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="country" className="text-xs text-muted-foreground uppercase">Country</Label>
+                    {isEditing ? (
+                      <Input id="country" value={editForm.country} onChange={e => setEditForm({...editForm, country: e.target.value})} className="bg-background" />
+                    ) : (
+                      <div className="text-sm">{exhibitorInfo.country || '—'}</div>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="postal_code" className="text-xs text-muted-foreground uppercase">Postal Code</Label>
+                    {isEditing ? (
+                      <Input id="postal_code" value={editForm.postal_code} onChange={e => setEditForm({...editForm, postal_code: e.target.value})} className="bg-background" />
+                    ) : (
+                      <div className="text-sm">{exhibitorInfo.postal_code || '—'}</div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Field Section: Contact */}
             <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider border-b pb-1 flex items-center gap-2">
+              <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
                 <Mail className="h-4 w-4" />
                 Contact Info
               </h3>
-              <div className="space-y-2">
-                <Label htmlFor="contact_person">Contact Person</Label>
-                {isEditing ? (
-                  <Input id="contact_person" value={editForm.contact_person} onChange={e => setEditForm({...editForm, contact_person: e.target.value})} />
-                ) : (
-                  <div className="p-2 bg-muted rounded-md text-sm">{exhibitorInfo.contact_person || '—'}</div>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="contact_email">Email</Label>
-                {isEditing ? (
-                  <Input id="contact_email" type="email" value={editForm.contact_email} onChange={e => setEditForm({...editForm, contact_email: e.target.value})} />
-                ) : (
-                  <div className="p-2 bg-muted rounded-md text-sm">{exhibitorInfo.contact_email || '—'}</div>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="tel">Phone / Fax</Label>
-                {isEditing ? (
+              <div className="space-y-4 rounded-lg border p-4 bg-muted/20">
+                <div className="space-y-2">
+                  <Label htmlFor="contact_person" className="text-xs text-muted-foreground uppercase">Contact Person</Label>
+                  {isEditing ? (
+                    <Input id="contact_person" value={editForm.contact_person} onChange={e => setEditForm({...editForm, contact_person: e.target.value})} className="bg-background" />
+                  ) : (
+                    <div className="text-sm font-medium">{exhibitorInfo.contact_person || '—'}</div>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="contact_email" className="text-xs text-muted-foreground uppercase">Email</Label>
+                  {isEditing ? (
+                    <Input id="contact_email" type="email" value={editForm.contact_email} onChange={e => setEditForm({...editForm, contact_email: e.target.value})} className="bg-background" />
+                  ) : (
+                    <div className="text-sm">{exhibitorInfo.contact_email || '—'}</div>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Input id="tel" placeholder="Phone" value={editForm.tel} onChange={e => setEditForm({...editForm, tel: e.target.value})} />
-                    <Input placeholder="Fax" value={editForm.fax} onChange={e => setEditForm({...editForm, fax: e.target.value})} />
+                    <Label htmlFor="tel" className="text-xs text-muted-foreground uppercase">Phone</Label>
+                    {isEditing ? (
+                      <Input id="tel" placeholder="Phone" value={editForm.tel} onChange={e => setEditForm({...editForm, tel: e.target.value})} className="bg-background" />
+                    ) : (
+                      <div className="text-sm flex items-center gap-2">
+                        <Phone className="h-3 w-3 text-muted-foreground" />
+                        {exhibitorInfo.tel || '—'}
+                      </div>
+                    )}
                   </div>
-                ) : (
-                  <div className="p-2 bg-muted rounded-md text-sm">
-                    <div className="flex items-center gap-2">
-                      <Phone className="h-3 w-3" />
-                      {exhibitorInfo.tel || '—'}
+                  <div className="space-y-2">
+                    <Label htmlFor="fax" className="text-xs text-muted-foreground uppercase">Fax</Label>
+                    {isEditing ? (
+                      <Input id="fax" placeholder="Fax" value={editForm.fax} onChange={e => setEditForm({...editForm, fax: e.target.value})} className="bg-background" />
+                    ) : (
+                      <div className="text-sm">{exhibitorInfo.fax || '—'}</div>
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="website" className="text-xs text-muted-foreground uppercase">Website</Label>
+                  {isEditing ? (
+                    <Input id="website" value={editForm.website} onChange={e => setEditForm({...editForm, website: e.target.value})} className="bg-background" />
+                  ) : (
+                    <div className="text-sm flex items-center gap-2">
+                      <Globe className="h-3 w-3 text-muted-foreground" />
+                      {exhibitorInfo.website ? (
+                        <a href={exhibitorInfo.website.startsWith('http') ? exhibitorInfo.website : `https://${exhibitorInfo.website}`} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                          {exhibitorInfo.website}
+                        </a>
+                      ) : '—'}
                     </div>
-                    <div className="text-muted-foreground text-xs mt-1">{exhibitorInfo.fax || ''}</div>
-                  </div>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="website">Website</Label>
-                {isEditing ? (
-                  <Input id="website" value={editForm.website} onChange={e => setEditForm({...editForm, website: e.target.value})} />
-                ) : (
-                  <div className="p-2 bg-muted rounded-md text-sm flex items-center gap-2">
-                    <Globe className="h-3 w-3" />
-                    {exhibitorInfo.website || '—'}
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             </div>
           </div>
