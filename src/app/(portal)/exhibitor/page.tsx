@@ -116,11 +116,17 @@ export default function ExhibitorPortalPage() {
         over_quota: data.info.over_quota || 0,
       })
     } else {
-      toast.error(profileResult.error || 'Failed to load exhibitor data')
+      if (profileResult.error === 'key incorrect') {
+        globalThis.dispatchEvent(new Event('auth:expired'))
+      } else {
+        toast.error(profileResult.error || 'Failed to load exhibitor data')
+      }
     }
 
     if (cutoffResult.success && cutoffResult.data) {
       setCutoffStatus(cutoffResult.data)
+    } else if (cutoffResult.error === 'key incorrect') {
+      globalThis.dispatchEvent(new Event('auth:expired'))
     }
 
     setLoading(false)
@@ -142,7 +148,11 @@ export default function ExhibitorPortalPage() {
       setIsEditing(false)
       fetchData()
     } else {
-      toast.error(result.error || 'Failed to update company information')
+      if (result.error === 'key incorrect') {
+        globalThis.dispatchEvent(new Event('auth:expired'))
+      } else {
+        toast.error(result.error || 'Failed to update company information')
+      }
     }
   }
 

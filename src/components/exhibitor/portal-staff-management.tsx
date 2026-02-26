@@ -40,7 +40,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Pencil, Trash2, Loader2, Printer, AlertTriangle, Lock, Mail, Users, Power } from 'lucide-react'
+import { Plus, Pencil, Loader2, Printer, AlertTriangle, Lock, Mail, Users, Power } from 'lucide-react'
 import { toast } from 'sonner'
 import { printBadge } from '@/utils/print-badge'
 import { CountrySelector } from '@/components/CountrySelector'
@@ -99,6 +99,10 @@ export function PortalStaffManagement({
   const [editingMember, setEditingMember] = useState<ExhibitorMember | null>(null)
   const [isOtherTitle, setIsOtherTitle] = useState(false)
   const [customTitle, setCustomTitle] = useState('')
+  const [isSendCredentialOpen, setIsSendCredentialOpen] = useState(false)
+  const [sendCredentialEmail, setSendCredentialEmail] = useState('')
+  const [sendCredentialMember, setSendCredentialMember] = useState<ExhibitorMember | null>(null)
+  const [sendingCredential, setSendingCredential] = useState(false)
   
   const [formData, setFormData] = useState({
     first_name: '',
@@ -249,13 +253,23 @@ export function PortalStaffManagement({
     }
   }
 
-  async function handleResendEmail(memberUuid: string) {
-    const result = await resendMemberEmailConfirmation([memberUuid])
+  function handleOpenSendCredential(member: ExhibitorMember) {
+    setSendCredentialMember(member)
+    setSendCredentialEmail(member.email || '')
+    setIsSendCredentialOpen(true)
+  }
+
+  async function handleSendCredential() {
+    if (!sendCredentialMember) return
+    setSendingCredential(true)
+    const result = await resendMemberEmailConfirmation([sendCredentialMember.member_uuid])
+    setSendingCredential(false)
     
     if (result.success) {
-      toast.success('Email confirmation sent')
+      toast.success('Credentials sent successfully')
+      setIsSendCredentialOpen(false)
     } else {
-      toast.error(result.error || 'Failed to send email')
+      toast.error(result.error || 'Failed to send credentials')
     }
   }
 
@@ -406,8 +420,8 @@ export function PortalStaffManagement({
                       <Button 
                         variant="ghost" 
                         size="icon" 
-                        onClick={() => handleResendEmail(member.member_uuid)}
-                        title="Resend Email"
+                        onClick={() => handleOpenSendCredential(member)}
+                        title="Send Credentials"
                       >
                         <Mail className="h-4 w-4 text-purple-500" />
                       </Button>
@@ -553,6 +567,44 @@ export function PortalStaffManagement({
               <Button type="submit">{editingMember ? 'Save Changes' : 'Add Staff'}</Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Send Credentials Dialog */}
+      <Dialog open={isSendCredentialOpen} onOpenChange={setIsSendCredentialOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">Send Credentials</DialogTitle>
+            <DialogDescription>
+              Send login credentials to {sendCredentialMember?.first_name} {sendCredentialMember?.last_name}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="flex items-center gap-4">
+              <Label htmlFor="credential_email" className="text-sm font-medium whitespace-nowrap">Email</Label>
+              <Input
+                id="credential_email"
+                type="email"
+                value={sendCredentialEmail}
+                onChange={e => setSendCredentialEmail(e.target.value)}
+                className="flex-1 bg-muted/50 focus:bg-background"
+                placeholder="email@example.com"
+              />
+            </div>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setIsSendCredentialOpen(false)} disabled={sendingCredential}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSendCredential}
+              disabled={sendingCredential || !sendCredentialEmail}
+              className="mx-2 gap-2 bg-gradient-to-r from-emerald-700 to-teal-700 hover:from-emerald-600 hover:to-teal-600 text-white"
+            >
+              {sendingCredential ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
+              Send Credentials
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </Card>
