@@ -98,7 +98,7 @@ export async function addExhibitorMember(data: {
 }) {
   try {
     const headers = await getPortalAuthHeaders()
-    const response = await api.post('/v1/exhibitors/members', data, { headers })
+    const response = await api.post('/v1/exhibitor/members', data, { headers })
     
     return { 
       success: true, 
@@ -123,10 +123,13 @@ export async function updateExhibitorMember(data: {
   mobile_country_code: string
   mobile_number: string
   email: string
+  company_name: string
+  company_country: string
+  company_tel: string
 }) {
   try {
     const headers = await getPortalAuthHeaders()
-    const response = await api.put('/v1/exhibitors/members/', data, { headers })
+    const response = await api.put('/v1/exhibitor/members/', data, { headers })
     
     return { 
       success: true, 
@@ -139,12 +142,11 @@ export async function updateExhibitorMember(data: {
   }
 }
 
-// PUT /v1/exhibitors/members/toggle_status (Portal - Toggle Member Status)
-export async function toggleExhibitorMemberStatus(exhibitorUuid: string, memberUuid: string) {
+// PATCH /v1/exhibitor/members/toggle_status (Portal - Toggle Member Status)
+export async function toggleExhibitorMemberStatus(memberUuid: string) {
   try {
     const headers = await getPortalAuthHeaders()
-    const response = await api.put('/v1/exhibitors/members/toggle_status', {
-      exhibitor_uuid: exhibitorUuid,
+    const response = await api.patch('/v1/exhibitor/members/toggle_status', {
       member_uuid: memberUuid
     }, { headers })
     
@@ -163,7 +165,7 @@ export async function toggleExhibitorMemberStatus(exhibitorUuid: string, memberU
 export async function resendMemberEmailConfirmation(memberUuids: string[]) {
   try {
     const headers = await getPortalAuthHeaders()
-    const response = await api.post('/v1/exhibitors/members/resend_email_comfirmation', memberUuids, { headers })
+    const response = await api.post('/v1/exhibitor/members/resend_email_comfirmation', memberUuids, { headers })
     
     return { 
       success: true, 

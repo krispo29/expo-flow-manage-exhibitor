@@ -40,9 +40,11 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Pencil, Trash2, Loader2, Printer, AlertTriangle, Lock, Mail, Users } from 'lucide-react'
+import { Plus, Pencil, Trash2, Loader2, Printer, AlertTriangle, Lock, Mail, Users, Power } from 'lucide-react'
 import { toast } from 'sonner'
 import { printBadge } from '@/utils/print-badge'
+import { CountrySelector } from '@/components/CountrySelector'
+import { countries } from '@/lib/countries'
 
 interface ExhibitorInfo {
   exhibitor_uuid: string
@@ -236,7 +238,6 @@ export function PortalStaffManagement({
     if (!exhibitorInfo?.exhibitor_uuid) return
     
     const result = await toggleExhibitorMemberStatus(
-      exhibitorInfo.exhibitor_uuid,
       member.member_uuid
     )
     
@@ -259,52 +260,79 @@ export function PortalStaffManagement({
   }
 
   return (
-    <Card className="overflow-hidden">
-      <div className="h-1 bg-gradient-to-r from-blue-500 to-indigo-500" />
-      <CardHeader className="flex flex-row items-center justify-between gap-4">
-        <div className="flex-1 max-w-sm space-y-1">
-          <CardTitle className="flex items-center gap-2 text-lg font-bold">
-            <Users className="h-4.5 w-4.5 text-blue-600 dark:text-blue-400" />
-            Staff Members
-            {isPastCutoff && (
-              <Badge variant="destructive" className="gap-1 text-xs px-2 py-0.5 rounded-md">
-                <Lock className="h-3 w-3" />
-                Locked
-              </Badge>
-            )}
-          </CardTitle>
-          <div className="mt-3 space-y-2">
-            <div className="flex justify-between items-center text-xs">
-              <span className="font-medium text-muted-foreground">Quota Usage</span>
-              <span className="font-bold text-sm">
-                {staffCount} / {totalQuota}
-                {(exhibitorInfo?.over_quota || 0) > 0 && (
-                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold ml-1.5 bg-emerald-100 dark:bg-emerald-900/30 px-1.5 py-0.5 rounded-full">
-                    +{exhibitorInfo?.over_quota} bonus
-                  </span>
-                )}
-              </span>
+    <div className="space-y-6">
+      <Card className="overflow-hidden">
+        <div className="h-1 bg-gradient-to-r from-blue-500 to-indigo-500" />
+        <CardHeader className="flex flex-row items-center justify-between gap-4">
+          <div className="flex-1 space-y-3">
+            <CardTitle className="flex items-center gap-2 text-lg font-bold">
+              <Users className="h-4.5 w-4.5 text-blue-600 dark:text-blue-400" />
+              Staff Members
+              {isPastCutoff && (
+                <Badge variant="destructive" className="gap-1 text-xs px-2 py-0.5 rounded-md">
+                  <Lock className="h-3 w-3" />
+                  Locked
+                </Badge>
+              )}
+            </CardTitle>
+            
+            {/* Exhibitor Badge Order Info Box */}
+            <div className="bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900 rounded-xl p-4">
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center shrink-0">
+                  <AlertTriangle className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div className="space-y-1.5 text-sm">
+                  <p className="text-blue-800 dark:text-blue-300 font-medium">
+                    Please make your request of &quot;Exhibitor Badge&quot; before 24.00 hrs., <span className="font-bold underline decoration-blue-300 dark:decoration-blue-700 underline-offset-4">
+                      {cutoffStatus?.cutoff_date ? new Date(cutoffStatus.cutoff_date).toLocaleDateString('en-GB', {
+                        weekday: 'long',
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric'
+                      }) : "the cutoff date"}
+                    </span>.
+                  </p>
+                  <ul className="list-disc list-inside text-muted-foreground text-xs space-y-1 ml-1">
+                    <li className="text-red-600 dark:text-red-400 font-medium">Requesting additional badges onsite will incur a charge of US$ 5 per badge.</li>
+                    <li>Maximum 10 badges request at a time according to your badge quota.</li>
+                  </ul>
+                </div>
+              </div>
             </div>
-            <Progress 
-              value={totalQuota > 0 ? (staffCount / totalQuota) * 100 : 0} 
-              className="h-2 rounded-full"
-              indicatorColor={isQuotaFull ? "bg-red-500" : "bg-blue-500"}
-            />
-            {isQuotaFull && (
-              <p className="text-[10px] text-red-500 font-semibold">Quota limit reached</p>
-            )}
+
+            <div className="mt-3 space-y-2 max-w-sm">
+              <div className="flex justify-between items-center text-xs">
+                <span className="font-medium text-muted-foreground">Quota Usage</span>
+                <span className="font-bold text-sm">
+                  {staffCount} / {totalQuota}
+                  {(exhibitorInfo?.over_quota || 0) > 0 && (
+                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold ml-1.5 bg-emerald-100 dark:bg-emerald-900/30 px-1.5 py-0.5 rounded-full">
+                      +{exhibitorInfo?.over_quota} bonus
+                    </span>
+                  )}
+                </span>
+              </div>
+              <Progress 
+                value={totalQuota > 0 ? (staffCount / totalQuota) * 100 : 0} 
+                className="h-2 rounded-full"
+                indicatorColor={isQuotaFull ? "bg-red-500" : "bg-blue-500"}
+              />
+              {isQuotaFull && (
+                <p className="text-[10px] text-red-500 font-semibold">Quota limit reached</p>
+              )}
+            </div>
           </div>
-        </div>
-        <Button 
-          onClick={() => handleOpenDialog()} 
-          size="sm" 
-          disabled={isPastCutoff || isQuotaFull}
-          className="rounded-lg gap-1.5 text-xs h-8"
-        >
-          <Plus className="h-3.5 w-3.5" /> Add Staff
-        </Button>
-      </CardHeader>
-      <CardContent>
+          <Button 
+            onClick={() => handleOpenDialog()} 
+            size="sm" 
+            disabled={isPastCutoff || isQuotaFull}
+            className="rounded-lg gap-1.5 text-xs h-8 shrink-0 self-start mt-1"
+          >
+            <Plus className="h-3.5 w-3.5" /> Add Staff
+          </Button>
+        </CardHeader>
+        <CardContent>
         {isPastCutoff && (
           <Alert variant="destructive" className="mb-4">
             <AlertTriangle className="h-4 w-4" />
@@ -361,18 +389,19 @@ export function PortalStaffManagement({
                         variant="ghost" 
                         size="icon" 
                         onClick={() => {
+                          const countryName = countries.find(c => c.code === member.company_country)?.name || member.company_country || exhibitorInfo?.country || 'THAILAND';
                           printBadge({
                             firstName: member.first_name || '',
                             lastName: member.last_name || '',
                             companyName: member.company_name || exhibitorInfo?.company_name || '',
-                            country: member.company_country || exhibitorInfo?.country || 'THAILAND',
+                            country: countryName,
                             registrationCode: member.registration_code,
                             category: 'EXHIBITOR',
                           })
                         }}
                         title="Print Badge"
                       >
-                        <Printer className="h-4 w-4" />
+                        <Printer className="h-4 w-4 text-green-500" />
                       </Button>
                       <Button 
                         variant="ghost" 
@@ -380,7 +409,7 @@ export function PortalStaffManagement({
                         onClick={() => handleResendEmail(member.member_uuid)}
                         title="Resend Email"
                       >
-                        <Mail className="h-4 w-4" />
+                        <Mail className="h-4 w-4 text-purple-500" />
                       </Button>
                       <Button 
                         variant="ghost" 
@@ -398,7 +427,7 @@ export function PortalStaffManagement({
                         disabled={isPastCutoff}
                         title={member.is_active ? 'Deactivate' : 'Activate'}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Power className={`h-4 w-4 ${member.is_active ? 'text-green-500' : 'text-slate-400'}`} />
                       </Button>
                     </div>
                   </TableCell>
@@ -479,26 +508,23 @@ export function PortalStaffManagement({
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="mobile" className="text-xs font-semibold uppercase text-muted-foreground">Mobile Number</Label>
                 <div className="flex gap-2">
-                  <Select 
-                    value={formData.mobile_country_code}
-                    onValueChange={(value) => setFormData({...formData, mobile_country_code: value})}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Code" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="66">+66</SelectItem>
-                      <SelectItem value="63">+63</SelectItem>
-                      <SelectItem value="65">+65</SelectItem>
-                      <SelectItem value="60">+60</SelectItem>
-                      <SelectItem value="62">+62</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="w-[140px] shrink-0">
+                    <CountrySelector 
+                      value={countries.find(c => c.phoneCode.replace('+', '') === formData.mobile_country_code)?.code || ''}
+                      onChange={(code) => {
+                        const country = countries.find(c => c.code === code);
+                        if (country) {
+                          setFormData({...formData, mobile_country_code: country.phoneCode.replace('+', '')});
+                        }
+                      }}
+                      displayProperty="phoneCode"
+                    />
+                  </div>
                   <Input 
                     id="mobile" 
                     value={formData.mobile_number} 
                     onChange={e => setFormData({...formData, mobile_number: e.target.value})} 
-                    className="flex-1 bg-muted/50 focus:bg-background"
+                    className="flex-1 bg-muted/50 focus:bg-background h-10"
                     placeholder="Enter mobile number without leading zero"
                   />
                 </div>
@@ -507,6 +533,15 @@ export function PortalStaffManagement({
               <div className="space-y-2">
                 <Label htmlFor="company_name" className="text-xs font-semibold uppercase text-muted-foreground">Company Name</Label>
                 <Input id="company_name" value={formData.company_name} onChange={e => setFormData({...formData, company_name: e.target.value})} className="bg-muted/50 focus:bg-background" placeholder={exhibitorInfo?.company_name || 'Company Name'} />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="company_country" className="text-xs font-semibold uppercase text-muted-foreground">Company Country</Label>
+                <CountrySelector 
+                  value={formData.company_country}
+                  onChange={(value) => setFormData({...formData, company_country: value})}
+                  placeholder="Select country"
+                />
               </div>
 
               <div className="space-y-2">
@@ -521,5 +556,6 @@ export function PortalStaffManagement({
         </DialogContent>
       </Dialog>
     </Card>
+    </div>
   )
 }

@@ -31,7 +31,7 @@ interface CountrySelectorProps {
 export function CountrySelector({
   value,
   onChange,
-  label = "Country",
+  label,
   placeholder = "Select country",
   displayProperty = "name",
   required = false
@@ -55,14 +55,15 @@ export function CountrySelector({
   const selectedCountry = countries.find((c) => c.code === value);
 
   return (
-    <>
+    <div className="space-y-2">
+      {label && <Label>{label} {required && <span className="text-red-500">*</span>}</Label>}
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className="w-full justify-between font-normal bg-background h-10"
+            className="w-full justify-between font-normal bg-background h-9"
           >
             {selectedCountry ? (
               <span className="flex items-center gap-2">
@@ -81,7 +82,7 @@ export function CountrySelector({
         </PopoverTrigger>
         <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
           <Command>
-            <CommandInput placeholder="Search country..." />
+            <CommandInput placeholder={`Search ${displayProperty}...`} className="h-9" />
             <CommandList>
               <CommandEmpty>No country found.</CommandEmpty>
               <CommandGroup>
@@ -110,6 +111,6 @@ export function CountrySelector({
           </Command>
         </PopoverContent>
       </Popover>
-    </>
+    </div>
   );
 }

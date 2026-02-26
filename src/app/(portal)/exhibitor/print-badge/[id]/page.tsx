@@ -7,6 +7,7 @@ import { getExhibitorProfile } from '@/app/actions/exhibitor'
 import { ExhibitorBadge } from '@/components/exhibitor/exhibitor-badge'
 import { Button } from '@/components/ui/button'
 import { Loader2, Printer, ArrowLeft } from 'lucide-react'
+import { countries } from '@/lib/countries'
 
 interface ExhibitorMember {
   member_uuid: string
@@ -47,9 +48,10 @@ export default function PrintBadgePage() {
       
       const result = await getExhibitorProfile()
       if (result.success && result.data) {
+        const countryName = countries.find(c => c.code === result.data.info.country)?.name || result.data.info.country;
         setExhibitorInfo({
           company_name: result.data.info.company_name,
-          country: result.data.info.country,
+          country: countryName,
           booth_no: result.data.info.booth_no,
         })
         const foundStaff = (result.data.members || []).find(

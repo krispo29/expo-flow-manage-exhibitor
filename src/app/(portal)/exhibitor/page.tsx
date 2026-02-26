@@ -10,6 +10,8 @@ import { Badge } from '@/components/ui/badge'
 import { Loader2, Building2, Save, Lock, Mail, Phone, Globe, MapPin, Ticket, Hash, Pencil, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { PortalStaffManagement } from '@/components/exhibitor/portal-staff-management'
+import { CountrySelector } from '@/components/CountrySelector'
+import { countries } from '@/lib/countries'
 
 interface ExhibitorInfo {
   exhibitor_uuid: string
@@ -292,9 +294,11 @@ export default function ExhibitorPortalPage() {
             {/* Basic Details */}
             <FieldSection icon={<Building2 className="h-3.5 w-3.5" />} title="Basic Details">
               <FieldItem label="Company Name" value={exhibitorInfo.company_name} editValue={editForm.company_name} editing={isEditing} onChange={v => setEditForm({...editForm, company_name: v})} />
-              {isEditing && (
-                <FieldItem label="Booth No." value={exhibitorInfo.booth_no} editValue={editForm.booth_no} editing={isEditing} onChange={v => setEditForm({...editForm, booth_no: v})} />
-              )}
+              <FieldItem label="Booth No." value={exhibitorInfo.booth_no} editValue={editForm.booth_no} editing={isEditing} onChange={v => setEditForm({...editForm, booth_no: v})} />
+              <div className="grid grid-cols-2 gap-3">
+                <FieldItem label="Quota" value={exhibitorInfo.quota?.toString()} editValue={editForm.quota?.toString()} editing={isEditing} onChange={v => setEditForm({...editForm, quota: Number.parseInt(v) || 0})} type="number" />
+                <FieldItem label="Over Quota" value={exhibitorInfo.over_quota?.toString()} editValue={editForm.over_quota?.toString()} editing={isEditing} onChange={v => setEditForm({...editForm, over_quota: Number.parseInt(v) || 0})} type="number" />
+              </div>
             </FieldSection>
 
             {/* Address */}
@@ -305,7 +309,21 @@ export default function ExhibitorPortalPage() {
                 <FieldItem label="Province" value={exhibitorInfo.province} editValue={editForm.province} editing={isEditing} onChange={v => setEditForm({...editForm, province: v})} />
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <FieldItem label="Country" value={exhibitorInfo.country} editValue={editForm.country} editing={isEditing} onChange={v => setEditForm({...editForm, country: v})} />
+                {isEditing ? (
+                  <div className="space-y-1.5">
+                    <Label className="text-[10px] text-muted-foreground uppercase font-medium tracking-wide">Country</Label>
+                    <CountrySelector 
+                      value={editForm.country}
+                      onChange={v => setEditForm({...editForm, country: v})}
+                    />
+                  </div>
+                ) : (
+                  <FieldItem 
+                    label="Country" 
+                    value={countries.find(c => c.code === exhibitorInfo.country)?.name || exhibitorInfo.country} 
+                    editing={false} 
+                  />
+                )}
                 <FieldItem label="Postal Code" value={exhibitorInfo.postal_code} editValue={editForm.postal_code} editing={isEditing} onChange={v => setEditForm({...editForm, postal_code: v})} />
               </div>
             </FieldSection>
