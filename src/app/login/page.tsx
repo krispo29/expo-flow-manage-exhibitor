@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/store/useAuthStore'
 import { exhibitorLoginAction } from '@/app/actions/auth'
@@ -14,7 +14,13 @@ import { ModeToggle } from '@/components/mode-toggle'
 export default function LoginPage() {
   const router = useRouter()
   const login = useAuthStore((state) => state.login)
+  const logout = useAuthStore((state) => state.logout)
   const [loading, setLoading] = useState(false)
+
+  // Clear state when visiting login page
+  useEffect(() => {
+    logout()
+  }, [logout])
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()

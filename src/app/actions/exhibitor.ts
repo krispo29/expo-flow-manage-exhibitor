@@ -29,10 +29,7 @@ export async function getExhibitorProfile() {
   } catch (error: any) {
     console.error('Error fetching exhibitor profile:', error)
     if (isTokenExpiredError(error)) {
-      const cookieStore = await cookies()
-      cookieStore.delete('access_token')
-      cookieStore.delete('project_uuid')
-      cookieStore.delete('user_role')
+      return { success: false, error: 'key incorrect' }
     }
     const errMsg = error.response?.data?.message || 'Failed to fetch profile'
     return { success: false, error: errMsg }
@@ -67,10 +64,7 @@ export async function updateExhibitorProfile(data: {
   } catch (error: any) {
     console.error('Error updating exhibitor profile:', error)
     if (isTokenExpiredError(error)) {
-      const cookieStore = await cookies()
-      cookieStore.delete('access_token')
-      cookieStore.delete('project_uuid')
-      cookieStore.delete('user_role')
+      return { success: false, error: 'key incorrect' }
     }
     const errMsg = error.response?.data?.message || 'Failed to update profile'
     return { success: false, error: errMsg }
@@ -90,10 +84,7 @@ export async function getExhibitorCutoffStatus() {
   } catch (error: any) {
     console.error('Error fetching cutoff status:', error)
     if (isTokenExpiredError(error)) {
-      const cookieStore = await cookies()
-      cookieStore.delete('access_token')
-      cookieStore.delete('project_uuid')
-      cookieStore.delete('user_role')
+      return { success: false, error: 'key incorrect' }
     }
     const errMsg = error.response?.data?.message || 'Failed to fetch cutoff status'
     return { success: false, error: errMsg }
@@ -126,10 +117,7 @@ export async function addExhibitorMember(data: {
   } catch (error: any) {
     console.error('Error adding member:', error)
     if (isTokenExpiredError(error)) {
-      const cookieStore = await cookies()
-      cookieStore.delete('access_token')
-      cookieStore.delete('project_uuid')
-      cookieStore.delete('user_role')
+      return { success: false, error: 'key incorrect' }
     }
     const errMsg = error.response?.data?.message || 'Failed to add member'
     return { success: false, error: errMsg }
@@ -163,10 +151,7 @@ export async function updateExhibitorMember(data: {
   } catch (error: any) {
     console.error('Error updating member:', error)
     if (isTokenExpiredError(error)) {
-      const cookieStore = await cookies()
-      cookieStore.delete('access_token')
-      cookieStore.delete('project_uuid')
-      cookieStore.delete('user_role')
+      return { success: false, error: 'key incorrect' }
     }
     const errMsg = error.response?.data?.message || 'Failed to update member'
     return { success: false, error: errMsg }
@@ -188,10 +173,7 @@ export async function toggleExhibitorMemberStatus(memberUuid: string) {
   } catch (error: any) {
     console.error('Error toggling member status:', error)
     if (isTokenExpiredError(error)) {
-      const cookieStore = await cookies()
-      cookieStore.delete('access_token')
-      cookieStore.delete('project_uuid')
-      cookieStore.delete('user_role')
+      return { success: false, error: 'key incorrect' }
     }
     const errMsg = error.response?.data?.message || 'Failed to toggle member status'
     return { success: false, error: errMsg }
@@ -211,10 +193,7 @@ export async function resendMemberEmailConfirmation(memberUuids: string[]) {
   } catch (error: any) {
     console.error('Error resending email confirmation:', error)
     if (isTokenExpiredError(error)) {
-      const cookieStore = await cookies()
-      cookieStore.delete('access_token')
-      cookieStore.delete('project_uuid')
-      cookieStore.delete('user_role')
+      return { success: false, error: 'key incorrect' }
     }
     const errMsg = error.response?.data?.message || 'Failed to resend email confirmation'
     return { success: false, error: errMsg }
