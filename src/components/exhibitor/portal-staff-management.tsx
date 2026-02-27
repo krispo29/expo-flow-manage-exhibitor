@@ -51,6 +51,7 @@ interface ExhibitorInfo {
   project_uuid: string
   company_name: string
   country?: string
+  tel?: string
   booth_no: string
   quota: number
   over_quota: number
@@ -185,8 +186,8 @@ export function PortalStaffManagement({
         mobile_country_code: '66',
         mobile_number: '',
         company_name: exhibitorInfo?.company_name || '',
-        company_country: '',
-        company_tel: ''
+        company_country: exhibitorInfo?.country || '',
+        company_tel: exhibitorInfo?.tel || ''
       })
       setIsOtherTitle(false)
       setCustomTitle('')
