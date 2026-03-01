@@ -55,6 +55,7 @@ interface ExhibitorInfo {
   booth_no: string
   quota: number
   over_quota: number
+  is_quota_full?: boolean
 }
 
 interface ExhibitorMember {
@@ -126,7 +127,7 @@ export function PortalStaffManagement({
 
   const totalQuota = (exhibitorInfo?.quota || 0) + (exhibitorInfo?.over_quota || 0)
   const staffCount = memberList.length
-  const isQuotaFull = staffCount >= totalQuota
+  const isQuotaFull = exhibitorInfo?.is_quota_full ?? (staffCount >= totalQuota)
   
   const now = new Date()
   const cutoff = cutoffStatus?.cutoff_date ? new Date(cutoffStatus.cutoff_date) : new Date()

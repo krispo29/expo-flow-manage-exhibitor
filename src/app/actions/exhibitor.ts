@@ -22,9 +22,21 @@ export async function getExhibitorProfile() {
     const headers = await getPortalAuthHeaders()
     const response = await api.get('/v1/exhibitor/profile', { headers })
     
+    // Calculate is_quota_full
+    const info = response.data.data.info
+    const members = response.data.data.members || []
+    const totalQuota = (info.quota || 0) + (info.over_quota || 0)
+    const isQuotaFull = members.length >= totalQuota
+    
     return { 
       success: true, 
-      data: response.data.data
+      data: {
+        ...response.data.data,
+        info: {
+          ...info,
+          is_quota_full: isQuotaFull
+        }
+      }
     }
   } catch (error: any) {
     console.error('Error fetching exhibitor profile:', error)

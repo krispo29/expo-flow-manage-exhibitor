@@ -38,6 +38,7 @@ interface ExhibitorInfo {
   updated_at: string
   last_login: string
   exhibitor_sequence: number
+  is_quota_full?: boolean
 }
 
 interface ExhibitorMember {
