@@ -4,13 +4,16 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/store/useAuthStore'
 
+import { logoutAction } from "@/app/actions/auth"
+
 export function AuthErrorHandler() {
   const router = useRouter()
   const logout = useAuthStore((state) => state.logout)
 
   useEffect(() => {
-    const handleAuthExpired = () => {
+    const handleAuthExpired = async () => {
       logout() // Clear Zustand state & localStorage
+      await logoutAction()
       router.push('/login') // Redirect to login
     }
 

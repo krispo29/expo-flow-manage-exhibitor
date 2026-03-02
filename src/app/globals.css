@@ -138,7 +138,7 @@
 }
 
 .portal-navbar-inner {
-  max-width: 72rem;
+  max-width: 100%;
   margin: 0 auto;
   height: 100%;
   display: flex;

@@ -9,7 +9,7 @@ export default async function PortalLayout({ children }: { readonly children: Re
       <div className="min-h-screen bg-background">
         <PortalNavbar />
         <main className="portal-main">
-          <div className="w-full max-w-6xl mx-auto">
+          <div className="w-full max-w-full mx-auto">
             {children}
           </div>
         </main>

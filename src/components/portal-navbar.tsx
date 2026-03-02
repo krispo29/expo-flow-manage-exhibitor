@@ -15,12 +15,15 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 
+import { logoutAction } from "@/app/actions/auth"
+
 export function PortalNavbar() {
   const { user, logout } = useAuthStore()
   const router = useRouter()
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     logout()
+    await logoutAction()
     router.push('/login')
   }
 
