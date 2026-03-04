@@ -12,8 +12,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "ExpoFlow — Event Management Platform",
-  description: "Manage exhibitions, conferences, organizers, and registrations seamlessly with ExpoFlow.",
+  title: "ILDEX Vietnam 2026 and Horti & Agri Vietnam 2026 — Event Management Platform",
+  description: "Manage exhibitions, conferences, organizers, and registrations seamlessly with ILDEX Vietnam 2026 and Horti & Agri Vietnam 2026.",
 };
 
 export default function RootLayout({

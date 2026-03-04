@@ -311,7 +311,7 @@ export function PortalStaffManagement({
                   </p>
                   <ul className="list-disc list-inside text-muted-foreground text-xs space-y-1 ml-1">
                     <li className="text-red-600 dark:text-red-400 font-medium">Requesting additional badges onsite will incur a charge of US$ 5 per badge.</li>
-                    <li>Maximum 10 badges request at a time according to your badge quota.</li>
+
                   </ul>
                 </div>
               </div>
@@ -455,7 +455,7 @@ export function PortalStaffManagement({
       </CardContent>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-xl">{editingMember ? 'Edit Staff Member' : 'Add New Staff Member'}</DialogTitle>
             <DialogDescription>

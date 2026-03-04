@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Loader2, Building2, Save, Lock, Mail, Phone, Globe, MapPin, Ticket, Hash, Pencil, X } from 'lucide-react'
+import { Loader2, Building2, Save, Lock, Mail, Phone, Globe, MapPin, Ticket, Hash, Pencil } from 'lucide-react'
 import { toast } from 'sonner'
 import { PortalStaffManagement } from '@/components/exhibitor/portal-staff-management'
 import { CountrySelector } from '@/components/CountrySelector'
@@ -219,11 +219,7 @@ export default function ExhibitorPortalPage() {
               </div>
               <div>
                 <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">{exhibitorInfo.company_name}</h1>
-                <p className="text-muted-foreground text-sm flex items-center gap-2 mt-0.5">
-                  <span className="font-mono text-xs bg-muted px-1.5 py-0.5 rounded">#{exhibitorInfo.exhibitor_sequence}</span>
-                  <span className="text-muted-foreground/40">•</span>
                   <span>Booth {exhibitorInfo.booth_no}</span>
-                </p>
               </div>
             </div>
           </div>
@@ -293,12 +289,7 @@ export default function ExhibitorPortalPage() {
               Edit
             </Button>
           )}
-          {isEditing && (
-            <Button variant="ghost" size="sm" onClick={handleCancel} className="gap-1.5 rounded-lg text-xs h-8 text-muted-foreground">
-              <X className="h-3 w-3" />
-              Cancel
-            </Button>
-          )}
+
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -307,8 +298,8 @@ export default function ExhibitorPortalPage() {
               <FieldItem label="Company Name" value={exhibitorInfo.company_name} editValue={editForm.company_name} editing={isEditing} onChange={v => setEditForm({...editForm, company_name: v})} />
               <FieldItem label="Booth No." value={exhibitorInfo.booth_no} editValue={editForm.booth_no} editing={isEditing} onChange={v => setEditForm({...editForm, booth_no: v})} />
               <div className="grid grid-cols-2 gap-3">
-                <FieldItem label="Quota" value={exhibitorInfo.quota?.toString()} editValue={editForm.quota?.toString()} editing={isEditing} onChange={v => setEditForm({...editForm, quota: Number.parseInt(v) || 0})} type="number" />
-                <FieldItem label="Over Quota" value={exhibitorInfo.over_quota?.toString()} editValue={editForm.over_quota?.toString()} editing={isEditing} onChange={v => setEditForm({...editForm, over_quota: Number.parseInt(v) || 0})} type="number" />
+                <FieldItem label="Quota" value={exhibitorInfo.quota?.toString()} editing={false} />
+                <FieldItem label="Over Quota" value={exhibitorInfo.over_quota?.toString()} editing={false} />
               </div>
             </FieldSection>
 
@@ -360,11 +351,11 @@ export default function ExhibitorPortalPage() {
           </div>
 
           {isEditing && (
-            <div className="mt-8 flex justify-end gap-3 border-t pt-5">
-              <Button variant="ghost" onClick={handleCancel} disabled={saving} className="rounded-lg">
+            <div className="mt-8 flex flex-col sm:flex-row justify-end gap-3 border-t pt-5">
+              <Button variant="ghost" onClick={handleCancel} disabled={saving} className="rounded-lg order-2 sm:order-1">
                 Cancel
               </Button>
-              <Button onClick={handleSaveContact} disabled={saving} className="rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white gap-2 shadow-md shadow-emerald-600/20">
+              <Button onClick={handleSaveContact} disabled={saving} className="rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white gap-2 shadow-md shadow-emerald-600/20 order-1 sm:order-2">
                 {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                 Save Changes
               </Button>

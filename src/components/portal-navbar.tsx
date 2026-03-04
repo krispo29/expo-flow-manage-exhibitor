@@ -44,7 +44,7 @@ export function PortalNavbar() {
               Exhibitor Portal
             </span>
             <span className="text-[10px] font-medium text-muted-foreground/70 uppercase tracking-widest mt-0.5 hidden sm:block">
-              ExpoFlow
+              ILDEX Vietnam 2026 and Horti & Agri Vietnam 2026
             </span>
           </div>
         </div>

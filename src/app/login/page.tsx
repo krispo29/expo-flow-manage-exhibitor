@@ -130,7 +130,7 @@ export default function LoginPage() {
             </p>
             <div className="pt-4 border-t border-border/10">
               <p className="text-[10px] text-muted-foreground/30 uppercase tracking-[0.2em]">
-                ExpoFlow Exhibitor Portal
+                ILDEX Vietnam 2026 and Horti & Agri Vietnam 2026 Exhibitor Portal
               </p>
             </div>
           </div>
