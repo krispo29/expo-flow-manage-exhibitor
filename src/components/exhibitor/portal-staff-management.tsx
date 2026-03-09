@@ -96,7 +96,7 @@ export function PortalStaffManagement({
   onStaffChange 
 }: PortalStaffManagementProps) {
   const [memberList, setMemberList] = useState<ExhibitorMember[]>(members)
-  const [loading, setLoading] = useState(false)
+  const [loading] = useState(false)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingMember, setEditingMember] = useState<ExhibitorMember | null>(null)
   const [isOtherTitle, setIsOtherTitle] = useState(false)
@@ -129,7 +129,7 @@ export function PortalStaffManagement({
   const staffCount = memberList.length
   const isQuotaFull = exhibitorInfo?.is_quota_full ?? (staffCount >= totalQuota)
   
-  const now = new Date()
+
   const cutoff = cutoffStatus?.cutoff_date ? new Date(cutoffStatus.cutoff_date) : new Date()
   const isPastCutoff = cutoffStatus ? !cutoffStatus.is_editable : false
 
@@ -322,11 +322,7 @@ export function PortalStaffManagement({
                 <span className="font-medium text-muted-foreground">Quota Usage</span>
                 <span className="font-bold text-sm">
                   {staffCount} / {totalQuota}
-                  {(exhibitorInfo?.over_quota || 0) > 0 && (
-                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold ml-1.5 bg-emerald-100 dark:bg-emerald-900/30 px-1.5 py-0.5 rounded-full">
-                      +{exhibitorInfo?.over_quota} bonus
-                    </span>
-                  )}
+
                 </span>
               </div>
               <Progress 
