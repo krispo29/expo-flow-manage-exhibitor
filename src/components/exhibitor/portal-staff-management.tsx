@@ -101,10 +101,10 @@ export function PortalStaffManagement({
   const [editingMember, setEditingMember] = useState<ExhibitorMember | null>(null)
   const [isOtherTitle, setIsOtherTitle] = useState(false)
   const [customTitle, setCustomTitle] = useState('')
-  const [isSendCredentialOpen, setIsSendCredentialOpen] = useState(false)
-  const [sendCredentialEmail, setSendCredentialEmail] = useState('')
-  const [sendCredentialMember, setSendCredentialMember] = useState<ExhibitorMember | null>(null)
-  const [sendingCredential, setSendingCredential] = useState(false)
+  const [isResendEmailOpen, setIsResendEmailOpen] = useState(false)
+  const [resendEmailValue, setResendEmailValue] = useState('')
+  const [resendEmailMember, setResendEmailMember] = useState<ExhibitorMember | null>(null)
+  const [resendingEmail, setResendingEmail] = useState(false)
   
   const [formData, setFormData] = useState({
     first_name: '',
@@ -255,23 +255,26 @@ export function PortalStaffManagement({
     }
   }
 
-  function handleOpenSendCredential(member: ExhibitorMember) {
-    setSendCredentialMember(member)
-    setSendCredentialEmail(member.email || '')
-    setIsSendCredentialOpen(true)
+  function handleOpenResendEmail(member: ExhibitorMember) {
+    setResendEmailMember(member)
+    setResendEmailValue(member.email || '')
+    setIsResendEmailOpen(true)
   }
 
-  async function handleSendCredential() {
-    if (!sendCredentialMember) return
-    setSendingCredential(true)
-    const result = await resendMemberEmailConfirmation([sendCredentialMember.member_uuid])
-    setSendingCredential(false)
+  async function handleResendEmail() {
+    if (!resendEmailMember) return
+    setResendingEmail(true)
+    const result = await resendMemberEmailConfirmation({
+      member_uuid: resendEmailMember.member_uuid,
+      email: resendEmailValue
+    })
+    setResendingEmail(false)
     
     if (result.success) {
-      toast.success('Credentials sent successfully')
-      setIsSendCredentialOpen(false)
+      toast.success('Email sent successfully')
+      setIsResendEmailOpen(false)
     } else {
-      toast.error(result.error || 'Failed to send credentials')
+      toast.error(result.error || 'Failed to send email')
     }
   }
 
@@ -418,8 +421,8 @@ export function PortalStaffManagement({
                       <Button 
                         variant="ghost" 
                         size="icon" 
-                        onClick={() => handleOpenSendCredential(member)}
-                        title="Send Credentials"
+                        onClick={() => handleOpenResendEmail(member)}
+                        title="Resend Email"
                       >
                         <Mail className="h-4 w-4 text-purple-500" />
                       </Button>
@@ -568,39 +571,39 @@ export function PortalStaffManagement({
         </DialogContent>
       </Dialog>
 
-      {/* Send Credentials Dialog */}
-      <Dialog open={isSendCredentialOpen} onOpenChange={setIsSendCredentialOpen}>
+      {/* Resend Email Dialog */}
+      <Dialog open={isResendEmailOpen} onOpenChange={setIsResendEmailOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold">Send Credentials</DialogTitle>
+            <DialogTitle className="text-xl font-bold">Resend Email</DialogTitle>
             <DialogDescription>
-              Send login credentials to {sendCredentialMember?.first_name} {sendCredentialMember?.last_name}.
+              Resend email confirmation to {resendEmailMember?.first_name} {resendEmailMember?.last_name}.
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <div className="flex items-center gap-4">
-              <Label htmlFor="credential_email" className="text-sm font-medium whitespace-nowrap">Email</Label>
+              <Label htmlFor="resend_email" className="text-sm font-medium whitespace-nowrap">Email</Label>
               <Input
-                id="credential_email"
+                id="resend_email"
                 type="email"
-                value={sendCredentialEmail}
-                onChange={e => setSendCredentialEmail(e.target.value)}
+                value={resendEmailValue}
+                onChange={e => setResendEmailValue(e.target.value)}
                 className="flex-1 bg-muted/50 focus:bg-background"
                 placeholder="email@example.com"
               />
             </div>
           </div>
           <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => setIsSendCredentialOpen(false)} disabled={sendingCredential}>
+            <Button variant="outline" onClick={() => setIsResendEmailOpen(false)} disabled={resendingEmail}>
               Cancel
             </Button>
             <Button
-              onClick={handleSendCredential}
-              disabled={sendingCredential || !sendCredentialEmail}
+              onClick={handleResendEmail}
+              disabled={resendingEmail || !resendEmailValue}
               className="mx-2 gap-2 bg-gradient-to-r from-emerald-700 to-teal-700 hover:from-emerald-600 hover:to-teal-600 text-white"
             >
-              {sendingCredential ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
-              Send Credentials
+              {resendingEmail ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
+              Resend Email
             </Button>
           </DialogFooter>
         </DialogContent>

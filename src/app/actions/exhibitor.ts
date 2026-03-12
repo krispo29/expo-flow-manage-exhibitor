@@ -193,10 +193,15 @@ export async function toggleExhibitorMemberStatus(memberUuid: string) {
 }
 
 // POST /v1/exhibitors/members/resend_email_comfirmation (Portal - Resend Email Confirmation)
-export async function resendMemberEmailConfirmation(memberUuids: string[]) {
+export async function resendMemberEmailConfirmation(data: { member_uuid: string, email: string }) {
   try {
     const headers = await getPortalAuthHeaders()
-    const response = await api.post('/v1/exhibitor/members/resend_email_comfirmation', memberUuids, { headers })
+    const response = await api.post('/v1/exhibitor/members/resend_email_comfirmation', [
+      {
+        member_uuid: data.member_uuid,
+        email: data.email
+      }
+    ], { headers })
     
     return { 
       success: true, 
