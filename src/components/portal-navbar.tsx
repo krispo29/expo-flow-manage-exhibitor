@@ -4,7 +4,7 @@ import { useAuthStore } from '@/store/useAuthStore'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { ModeToggle } from '@/components/mode-toggle'
-import { LogOut, Building2, User } from 'lucide-react'
+import { LogOut, User } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,8 +36,8 @@ export function PortalNavbar() {
       <div className="portal-navbar-inner">
         {/* Left: Branding */}
         <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/20">
-            <Building2 className="h-5 w-5" />
+          <div className="flex items-center justify-center w-9 h-9 rounded-xl overflow-hidden">
+            <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
           </div>
           <div className="flex flex-col">
             <span className="text-sm font-bold tracking-tight text-foreground leading-none">
