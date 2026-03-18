@@ -297,9 +297,8 @@ export default function ExhibitorPortalPage() {
             <FieldSection icon={<Building2 className="h-3.5 w-3.5" />} title="Basic Details">
               <FieldItem label="Company Name" value={exhibitorInfo.company_name} editValue={editForm.company_name} editing={isEditing} onChange={v => setEditForm({...editForm, company_name: v})} />
               <FieldItem label="Booth No." value={exhibitorInfo.booth_no} editValue={editForm.booth_no} editing={isEditing} onChange={v => setEditForm({...editForm, booth_no: v})} />
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1">
                 <FieldItem label="Quota" value={exhibitorInfo.quota?.toString()} editing={false} />
-                <FieldItem label="Over Quota" value={exhibitorInfo.over_quota?.toString()} editing={false} />
               </div>
             </FieldSection>
 
@@ -334,9 +333,8 @@ export default function ExhibitorPortalPage() {
             <FieldSection icon={<Mail className="h-3.5 w-3.5" />} title="Contact Info">
               <FieldItem label="Contact Person" value={exhibitorInfo.contact_person} editValue={editForm.contact_person} editing={isEditing} onChange={v => setEditForm({...editForm, contact_person: v})} />
               <FieldItem label="Email" value={exhibitorInfo.contact_email} editValue={editForm.contact_email} editing={isEditing} onChange={v => setEditForm({...editForm, contact_email: v})} type="email" />
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1">
                 <FieldItem label="Phone" value={exhibitorInfo.tel} editValue={editForm.tel} editing={isEditing} onChange={v => setEditForm({...editForm, tel: v})} icon={<Phone className="h-3 w-3 text-muted-foreground" />} />
-                <FieldItem label="Fax" value={exhibitorInfo.fax} editValue={editForm.fax} editing={isEditing} onChange={v => setEditForm({...editForm, fax: v})} />
               </div>
               <FieldItem
                 label="Website"

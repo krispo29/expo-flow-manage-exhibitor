@@ -1,10 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, FormEvent } from 'react'
 import { 
   addExhibitorMember, 
   updateExhibitorMember, 
-  toggleExhibitorMemberStatus,
   resendMemberEmailConfirmation 
 } from '@/app/actions/exhibitor'
 import { Button } from '@/components/ui/button'
@@ -40,9 +39,8 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Pencil, Loader2, Printer, AlertTriangle, Lock, Mail, Users, Power } from 'lucide-react'
+import { Plus, Pencil, Loader2, AlertTriangle, Lock, Mail, Users } from 'lucide-react'
 import { toast } from 'sonner'
-import { printBadge } from '@/utils/print-badge'
 import { CountrySelector } from '@/components/CountrySelector'
 import { countries } from '@/lib/countries'
 
@@ -196,7 +194,7 @@ export function PortalStaffManagement({
     setIsDialogOpen(true)
   }
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     if (!exhibitorInfo?.exhibitor_uuid) return
     
@@ -236,24 +234,7 @@ export function PortalStaffManagement({
     }
   }
 
-  async function handleToggleStatus(member: ExhibitorMember) {
-    if (isPastCutoff) {
-      toast.error('Editing is no longer allowed. The cutoff date has passed.')
-      return
-    }
-    if (!exhibitorInfo?.exhibitor_uuid) return
-    
-    const result = await toggleExhibitorMemberStatus(
-      member.member_uuid
-    )
-    
-    if (result.success) {
-      toast.success(`Staff ${member.is_active ? 'deactivated' : 'activated'} successfully`)
-      onStaffChange?.()
-    } else {
-      toast.error(result.error || 'Failed to update status')
-    }
-  }
+
 
   function handleOpenResendEmail(member: ExhibitorMember) {
     setResendEmailMember(member)
@@ -302,16 +283,11 @@ export function PortalStaffManagement({
                   <AlertTriangle className="h-3 w-3 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div className="space-y-1.5 text-sm">
-                  <p className="text-blue-800 dark:text-blue-300 font-medium">
-                    Please make your request of &quot;Exhibitor Badge&quot; before 24.00 hrs., <span className="font-bold underline decoration-blue-300 dark:decoration-blue-700 underline-offset-4">
-                      {cutoffStatus?.cutoff_date ? new Date(cutoffStatus.cutoff_date).toLocaleDateString('en-GB', {
-                        weekday: 'long',
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric'
-                      }) : "the cutoff date"}
-                    </span>.
-                  </p>
+                    <p className="text-blue-800 dark:text-blue-300 font-medium">
+                      Please make your request of &quot;Exhibitor Badge&quot; before 24.00 hrs., <span className="font-bold underline decoration-blue-300 dark:decoration-blue-700 underline-offset-4">
+                        Friday, 15 May 2026
+                      </span>.
+                    </p>
                   <ul className="list-disc list-inside text-muted-foreground text-xs space-y-1 ml-1">
                     <li className="text-red-600 dark:text-red-400 font-medium">Requesting additional badges onsite will incur a charge of US$ 5 per badge.</li>
 
@@ -400,24 +376,7 @@ export function PortalStaffManagement({
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        onClick={() => {
-                          const countryName = countries.find(c => c.code === member.company_country)?.name || member.company_country || exhibitorInfo?.country || 'THAILAND';
-                          printBadge({
-                            firstName: member.first_name || '',
-                            lastName: member.last_name || '',
-                            companyName: member.company_name || exhibitorInfo?.company_name || '',
-                            country: countryName,
-                            registrationCode: member.registration_code,
-                            category: 'EXHIBITOR',
-                          })
-                        }}
-                        title="Print Badge"
-                      >
-                        <Printer className="h-4 w-4 text-green-500" />
-                      </Button>
+
                       <Button 
                         variant="ghost" 
                         size="icon" 
@@ -435,15 +394,7 @@ export function PortalStaffManagement({
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        onClick={() => handleToggleStatus(member)}
-                        disabled={isPastCutoff}
-                        title={member.is_active ? 'Deactivate' : 'Activate'}
-                      >
-                        <Power className={`h-4 w-4 ${member.is_active ? 'text-green-500' : 'text-slate-400'}`} />
-                      </Button>
+
                     </div>
                   </TableCell>
                 </TableRow>
