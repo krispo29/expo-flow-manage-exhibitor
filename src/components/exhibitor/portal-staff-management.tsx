@@ -462,13 +462,13 @@ export function PortalStaffManagement({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="job_position" className="text-xs font-semibold uppercase text-muted-foreground">Position</Label>
-                <Input id="job_position" value={formData.job_position} onChange={e => setFormData({...formData, job_position: e.target.value})} className="bg-muted/50 focus:bg-background" />
+                <Label htmlFor="job_position" className="text-xs font-semibold uppercase text-muted-foreground">Position <span className="text-red-500">*</span></Label>
+                <Input id="job_position" value={formData.job_position} onChange={e => setFormData({...formData, job_position: e.target.value})} className="bg-muted/50 focus:bg-background" required />
               </div>
 
               <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="email" className="text-xs font-semibold uppercase text-muted-foreground">Email Address</Label>
-                <Input id="email" type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="bg-muted/50 focus:bg-background" placeholder="email@example.com" />
+                <Label htmlFor="email" className="text-xs font-semibold uppercase text-muted-foreground">Email Address <span className="text-red-500">*</span></Label>
+                <Input id="email" type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="bg-muted/50 focus:bg-background" placeholder="email@example.com" required />
               </div>
 
               <div className="space-y-2 md:col-span-2">
