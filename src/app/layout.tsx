@@ -14,6 +14,10 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "ILDEX Vietnam 2026 and Horti & Agri Vietnam 2026 — Event Management Platform",
   description: "Manage exhibitions, conferences, organizers, and registrations seamlessly with ILDEX Vietnam 2026 and Horti & Agri Vietnam 2026.",
+  icons: {
+    icon: "/logo.jpg",
+    apple: "/logo.jpg",
+  },
 };
 
 export default function RootLayout({

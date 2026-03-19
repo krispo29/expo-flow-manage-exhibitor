@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
-import { Loader2, Building2, ArrowRight } from 'lucide-react'
+import { Loader2, ArrowRight } from 'lucide-react'
 import { ModeToggle } from '@/components/mode-toggle'
 
 export default function LoginPage() {
@@ -22,7 +22,7 @@ export default function LoginPage() {
     logout()
   }, [logout])
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.SyntheticEvent<HTMLFormElement>) {
     event.preventDefault()
     setLoading(true)
 
@@ -62,14 +62,21 @@ export default function LoginPage() {
 
       <div className="w-full max-w-[420px] px-6 relative z-10">
         <div className="space-y-8 animate-scale-in">
-          {/* Header */}
-          <div className="space-y-2 text-center">
-            <h2 className="text-3xl font-bold tracking-tight text-foreground">
-              Exhibitor Login
-            </h2>
-            <p className="text-muted-foreground text-sm">
-              Sign in to manage your exhibition presence
-            </p>
+          {/* Logo and Header */}
+          <div className="space-y-6 text-center">
+            <div className="flex justify-center">
+              <div className="w-full max-w-[280px] rounded-[2rem] bg-white p-6 shadow-2xl shadow-emerald-500/10 border border-white/50">
+                <img src="/logo.jpg" alt="Event Logo" className="w-full h-auto object-contain" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-3xl font-bold tracking-tight text-foreground">
+                Exhibitor Login
+              </h2>
+              <p className="text-muted-foreground text-sm">
+                Sign in to manage your exhibition presence
+              </p>
+            </div>
           </div>
 
           {/* Form container with glassmorphism */}
@@ -125,7 +132,7 @@ export default function LoginPage() {
           {/* Footer note */}
           <div className="text-center space-y-4 animate-fade-in delay-300">
             <p className="text-xs text-muted-foreground/60 leading-relaxed">
-              Don't have an account or lost your credentials?<br />
+              Don&apos;t have an account or lost your credentials?<br />
               Please contact your event organizer for support.
             </p>
             <div className="pt-4 border-t border-border/10">

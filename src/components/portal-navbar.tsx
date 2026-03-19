@@ -36,8 +36,8 @@ export function PortalNavbar() {
       <div className="portal-navbar-inner">
         {/* Left: Branding */}
         <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-9 h-9 rounded-xl overflow-hidden">
-            <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
+          <div className="flex items-center justify-center w-14 h-14 rounded-xl overflow-hidden">
+            <img src="/logo.jpg" alt="Logo" className="w-full h-full object-contain" />
           </div>
           <div className="flex flex-col">
             <span className="text-sm font-bold tracking-tight text-foreground leading-none">
