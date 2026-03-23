@@ -284,9 +284,17 @@ export function PortalStaffManagement({
                 </div>
                 <div className="space-y-1.5 text-sm">
                     <p className="text-blue-800 dark:text-blue-300 font-medium">
-                      Please make your request of &quot;Exhibitor Badge&quot; before 24.00 hrs., <span className="font-bold underline decoration-blue-300 dark:decoration-blue-700 underline-offset-4">
-                        Friday, 15 May 2026
-                      </span>.
+                      Please make your request of &quot;Exhibitor Badge&quot; before 24.00 hrs.,{' '}
+                      {cutoffStatus?.cutoff_date ? (
+                        <span className="font-bold underline decoration-blue-300 dark:decoration-blue-700 underline-offset-4">
+                          {new Date(cutoffStatus.cutoff_date).toLocaleDateString('en-GB', {
+                            weekday: 'long',
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric',
+                          })}
+                        </span>
+                      ) : '—'}.
                     </p>
                   <ul className="list-disc list-inside text-muted-foreground text-xs space-y-1 ml-1">
                     <li className="text-red-600 dark:text-red-400 font-medium">Requesting additional badges onsite will incur a charge of US$ 5 per badge.</li>

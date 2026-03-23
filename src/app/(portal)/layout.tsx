@@ -6,10 +6,10 @@ export default async function PortalLayout({ children }: { readonly children: Re
   return (
     <AuthGuard>
       <AuthErrorHandler />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background flex flex-col">
         <PortalNavbar />
-        <main className="portal-main">
-          <div className="w-full max-w-full mx-auto">
+        <main className="flex-1">
+          <div className="mx-auto w-full max-w-[1280px] px-4 sm:px-6 py-6 sm:py-8">
             {children}
           </div>
         </main>

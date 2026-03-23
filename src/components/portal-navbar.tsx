@@ -14,7 +14,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-
 import { logoutAction } from "@/app/actions/auth"
 
 export function PortalNavbar() {
@@ -32,19 +31,18 @@ export function PortalNavbar() {
     : 'EX'
 
   return (
-    <header className="portal-navbar">
-      <div className="portal-navbar-inner">
+    <header className="sticky top-0 z-50 h-14 border-b border-border bg-background/80 backdrop-blur-xl backdrop-saturate-180">
+      <div className="mx-auto flex h-full w-full max-w-[1280px] items-center justify-between px-4 sm:px-6">
         {/* Left: Branding */}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-14 h-14 rounded-xl overflow-hidden">
-            <img src="/logo.jpg" alt="Logo" className="w-full h-full object-contain" />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-sm font-bold tracking-tight text-foreground leading-none">
+        <div className="flex items-center gap-2.5">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.jpg" alt="Exhibitor Portal Logo" width={36} height={36} className="rounded-lg object-contain shrink-0" />
+          <div className="flex flex-col leading-none">
+            <span className="text-sm font-bold tracking-tight text-foreground">
               Exhibitor Portal
             </span>
-            <span className="text-[10px] font-medium text-muted-foreground/70 uppercase tracking-widest mt-0.5 hidden sm:block">
-              ILDEX Vietnam 2026 and Horti & Agri Vietnam 2026
+            <span className="text-[10px] font-medium text-muted-foreground/70 uppercase tracking-widest hidden sm:block">
+              ILDEX Vietnam 2026
             </span>
           </div>
         </div>
@@ -57,10 +55,10 @@ export function PortalNavbar() {
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
-                className="flex items-center gap-2.5 h-9 px-2 sm:px-3 rounded-xl hover:bg-accent/80 transition-all duration-200"
+                className="flex items-center gap-2 h-9 px-2 sm:px-3 rounded-xl hover:bg-accent/80 transition-all duration-200"
               >
                 <Avatar className="h-7 w-7 ring-2 ring-emerald-500/20">
-                  <AvatarFallback className="bg-gradient-to-br from-emerald-500 to-teal-600 text-white text-xs font-bold">
+                  <AvatarFallback className="bg-linear-to-br from-emerald-500 to-teal-600 text-white text-xs font-bold">
                     {initials}
                   </AvatarFallback>
                 </Avatar>
@@ -72,7 +70,7 @@ export function PortalNavbar() {
             <DropdownMenuContent align="end" className="w-56 rounded-xl shadow-xl border-border/50">
               <DropdownMenuLabel className="font-normal px-3 py-2.5">
                 <div className="flex items-center gap-3">
-                  <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 text-white">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-linear-to-br from-emerald-500 to-teal-600 text-white">
                     <User className="h-4 w-4" />
                   </div>
                   <div className="flex flex-col">
