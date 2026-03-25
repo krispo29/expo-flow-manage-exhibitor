@@ -24,7 +24,7 @@ export async function exhibitorLoginAction(formData: FormData) {
       return { error: result.message || 'Invalid username or password' }
     }
 
-    const { access_token, exhibitor_uuid, project_uuid } = result.data
+    const { access_token, exhibitor_uuid, project_uuid, expires_in } = result.data
 
     // Store access token in HTTP-only cookie
     const cookieStore = await cookies()
@@ -56,6 +56,7 @@ export async function exhibitorLoginAction(formData: FormData) {
 
     return {
       success: true,
+      expiresIn: expires_in || 604800,
       user: {
         id: exhibitor_uuid,
         username,

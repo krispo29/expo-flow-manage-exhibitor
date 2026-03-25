@@ -12,8 +12,8 @@ export function AuthErrorHandler() {
 
   useEffect(() => {
     const handleAuthExpired = async () => {
-      logout() // Clear Zustand state & localStorage
       await logoutAction()
+      logout()
       router.push('/login') // Redirect to login
     }
 

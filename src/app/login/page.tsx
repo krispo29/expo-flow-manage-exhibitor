@@ -37,7 +37,7 @@ export default function LoginPage() {
       }
 
       if (result.success && result.user) {
-        login(result.user)
+        login(result.user, result.expiresIn || 604800)
         toast.success('Logged in successfully')
         router.push('/exhibitor')
       }

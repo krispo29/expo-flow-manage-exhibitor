@@ -1,8 +1,17 @@
 import { AuthGuard } from "@/components/auth-guard"
 import { AuthErrorHandler } from "@/components/auth-error-handler"
 import { PortalNavbar } from "@/components/portal-navbar"
+import { cookies } from "next/headers"
+import { redirect } from "next/navigation"
 
 export default async function PortalLayout({ children }: { readonly children: React.ReactNode }) {
+  const cookieStore = await cookies()
+  const token = cookieStore.get('access_token')?.value
+
+  if (!token) {
+    redirect('/login')
+  }
+
   return (
     <AuthGuard>
       <AuthErrorHandler />

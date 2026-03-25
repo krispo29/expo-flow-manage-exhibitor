@@ -21,9 +21,11 @@ export function PortalNavbar() {
   const router = useRouter()
 
   const handleLogout = async () => {
+    const result = await logoutAction()
+    if (!result.success) return
+
     logout()
-    await logoutAction()
-    router.push('/login')
+    router.replace('/login')
   }
 
   const initials = user?.username

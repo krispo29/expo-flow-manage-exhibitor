@@ -13,9 +13,11 @@ interface AuthState {
   user: User | null
   isAuthenticated: boolean
   isHydrated: boolean
-  login: (user: User) => void
+  expiresAt: number | null
+  login: (user: User, expiresIn: number) => void
   logout: () => void
   setHydrated: () => void
+  clearExpiredSession: () => void
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -24,13 +26,32 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       isAuthenticated: false,
       isHydrated: false,
-      login: (user) => set({ user, isAuthenticated: true }),
-      logout: () => set({ user: null, isAuthenticated: false }),
+      expiresAt: null,
+      login: (user, expiresIn) =>
+        set({
+          user,
+          isAuthenticated: true,
+          expiresAt: Date.now() + expiresIn * 1000,
+        }),
+      logout: () => set({ user: null, isAuthenticated: false, expiresAt: null }),
       setHydrated: () => set({ isHydrated: true }),
+      clearExpiredSession: () =>
+        set((state) => {
+          if (!state.expiresAt || state.expiresAt > Date.now()) {
+            return state
+          }
+
+          return {
+            user: null,
+            isAuthenticated: false,
+            expiresAt: null,
+          }
+        }),
     }),
     {
       name: 'auth-storage',
       onRehydrateStorage: () => (state) => {
+        state?.clearExpiredSession()
         state?.setHydrated()
       },
     }
