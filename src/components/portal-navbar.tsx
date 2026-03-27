@@ -38,7 +38,7 @@ export function PortalNavbar() {
         {/* Left: Branding */}
         <div className="flex items-center gap-2.5">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.jpg" alt="Exhibitor Portal Logo" width={36} height={36} className="rounded-lg object-contain shrink-0" />
+          <img src="https://static.thedeft.co/expoflow/ILDEX_VN_LOGO.jpg" alt="Exhibitor Portal Logo" width={36} height={36} className="rounded-lg object-contain shrink-0" />
           <div className="flex flex-col leading-none">
             <span className="text-sm font-bold tracking-tight text-foreground">
               Exhibitor Portal

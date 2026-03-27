@@ -66,7 +66,8 @@ export default function LoginPage() {
           <div className="space-y-6 text-center">
             <div className="flex justify-center">
               <div className="w-full max-w-[280px] rounded-[2rem] bg-white p-6 shadow-2xl shadow-emerald-500/10 border border-white/50">
-                <img src="/logo.jpg" alt="Event Logo" className="w-full h-auto object-contain" />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="https://static.thedeft.co/expoflow/ILDEX_VN_LOGO.jpg" alt="Event Logo" className="w-full h-auto object-contain" />
               </div>
             </div>
             <div className="space-y-2">
