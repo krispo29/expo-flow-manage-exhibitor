@@ -37,7 +37,15 @@ export const useAuthStore = create<AuthState>()(
       setHydrated: () => set({ isHydrated: true }),
       clearExpiredSession: () =>
         set((state) => {
-          if (!state.expiresAt || state.expiresAt > Date.now()) {
+          if (!state.expiresAt) {
+            return {
+              user: null,
+              isAuthenticated: false,
+              expiresAt: null,
+            }
+          }
+
+          if (state.expiresAt > Date.now()) {
             return state
           }
 

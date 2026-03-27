@@ -229,6 +229,8 @@ export function PortalStaffManagement({
       toast.success(editingMember ? 'Staff updated' : 'Staff added')
       setIsDialogOpen(false)
       onStaffChange?.()
+    } else if (result.error === 'key incorrect') {
+      globalThis.dispatchEvent(new Event('auth:expired'))
     } else {
       toast.error(result.error || 'Operation failed')
     }
@@ -254,6 +256,8 @@ export function PortalStaffManagement({
     if (result.success) {
       toast.success('Email sent successfully')
       setIsResendEmailOpen(false)
+    } else if (result.error === 'key incorrect') {
+      globalThis.dispatchEvent(new Event('auth:expired'))
     } else {
       toast.error(result.error || 'Failed to send email')
     }
