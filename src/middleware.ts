@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { getJwtExpirationTimestamp } from '@/lib/jwt'
+import { AUTH_COOKIE_NAMES, hasPortalSession } from '@/lib/auth-session'
 
 function clearAuthCookies(response: NextResponse) {
-  response.cookies.delete('access_token')
-  response.cookies.delete('project_uuid')
-  response.cookies.delete('user_role')
+  for (const cookieName of AUTH_COOKIE_NAMES) {
+    response.cookies.delete(cookieName)
+  }
 }
 
 export function middleware(request: NextRequest) {
@@ -18,14 +18,17 @@ export function middleware(request: NextRequest) {
 
   // Extract the access token from cookies
   const token = request.cookies.get('access_token')?.value
-  const expiresAt = token ? getJwtExpirationTimestamp(token) : null
-  const hasValidToken = Boolean(token) && expiresAt !== null && expiresAt > Date.now()
+  const projectUuid = request.cookies.get('project_uuid')?.value
+  const hasValidPortalSession = hasPortalSession({ token, projectUuid })
+  const hasAnyAuthCookie = AUTH_COOKIE_NAMES.some((cookieName) =>
+    Boolean(request.cookies.get(cookieName)?.value)
+  )
 
   // Redirect to login if accessing a protected route without a token
-  if (isProtectedRoute && !hasValidToken) {
+  if (isProtectedRoute && !hasValidPortalSession) {
     const response = NextResponse.redirect(new URL('/login', request.url))
 
-    if (token) {
+    if (hasAnyAuthCookie) {
       clearAuthCookies(response)
     }
 
@@ -33,14 +36,14 @@ export function middleware(request: NextRequest) {
   }
 
   // Redirect to exhibitor dashboard if accessing login page with a token
-  if (isPublicRoute && hasValidToken) {
+  if (isPublicRoute && hasValidPortalSession) {
     return NextResponse.redirect(new URL('/exhibitor', request.url))
   }
 
   // Continue with the request if no redirect is needed
   const response = NextResponse.next()
 
-  if (token && !hasValidToken) {
+  if (hasAnyAuthCookie && !hasValidPortalSession) {
     clearAuthCookies(response)
   }
 

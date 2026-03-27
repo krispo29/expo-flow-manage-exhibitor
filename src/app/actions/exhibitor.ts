@@ -3,16 +3,35 @@
 import { cookies } from 'next/headers'
 import api from '@/lib/api'
 import { isTokenExpiredError } from '@/lib/auth-helpers'
+import { AUTH_COOKIE_NAMES, hasPortalSession } from '@/lib/auth-session'
+
+type PortalAuthHeaders = {
+  'X-Project-UUID': string
+  Authorization: string
+}
+
+async function clearAuthCookies() {
+  const cookieStore = await cookies()
+
+  for (const cookieName of AUTH_COOKIE_NAMES) {
+    cookieStore.delete(cookieName)
+  }
+}
 
 // Helper function to get headers with auth (uses cookie-based project_uuid)
-async function getPortalAuthHeaders() {
+async function getPortalAuthHeaders(): Promise<PortalAuthHeaders | null> {
   const cookieStore = await cookies()
   const projectUuid = cookieStore.get('project_uuid')?.value
   const token = cookieStore.get('access_token')?.value
-  
+
+  if (!token || !projectUuid || !hasPortalSession({ token, projectUuid })) {
+    await clearAuthCookies()
+    return null
+  }
+
   return {
-    ...(projectUuid && { 'X-Project-UUID': projectUuid }),
-    ...(token && { Authorization: `Bearer ${token}` })
+    'X-Project-UUID': projectUuid,
+    Authorization: `Bearer ${token}`,
   }
 }
 
@@ -20,6 +39,11 @@ async function getPortalAuthHeaders() {
 export async function getExhibitorProfile() {
   try {
     const headers = await getPortalAuthHeaders()
+
+    if (!headers) {
+      return { success: false, error: 'key incorrect' }
+    }
+
     const response = await api.get('/v1/exhibitor/profile', { headers })
     
     // Calculate is_quota_full
@@ -41,6 +65,7 @@ export async function getExhibitorProfile() {
   } catch (error: any) {
     console.error('Error fetching exhibitor profile:', error)
     if (isTokenExpiredError(error)) {
+      await clearAuthCookies()
       return { success: false, error: 'key incorrect' }
     }
     const errMsg = error.response?.data?.message || 'Failed to fetch profile'
@@ -67,6 +92,11 @@ export async function updateExhibitorProfile(data: {
 }) {
   try {
     const headers = await getPortalAuthHeaders()
+
+    if (!headers) {
+      return { success: false, error: 'key incorrect' }
+    }
+
     const response = await api.put('/v1/exhibitor/profile', data, { headers })
     
     return { 
@@ -76,6 +106,7 @@ export async function updateExhibitorProfile(data: {
   } catch (error: any) {
     console.error('Error updating exhibitor profile:', error)
     if (isTokenExpiredError(error)) {
+      await clearAuthCookies()
       return { success: false, error: 'key incorrect' }
     }
     const errMsg = error.response?.data?.message || 'Failed to update profile'
@@ -87,6 +118,11 @@ export async function updateExhibitorProfile(data: {
 export async function getExhibitorCutoffStatus() {
   try {
     const headers = await getPortalAuthHeaders()
+
+    if (!headers) {
+      return { success: false, error: 'key incorrect' }
+    }
+
     const response = await api.get('/v1/exhibitor/cutoff-status', { headers })
     
     return { 
@@ -96,6 +132,7 @@ export async function getExhibitorCutoffStatus() {
   } catch (error: any) {
     console.error('Error fetching cutoff status:', error)
     if (isTokenExpiredError(error)) {
+      await clearAuthCookies()
       return { success: false, error: 'key incorrect' }
     }
     const errMsg = error.response?.data?.message || 'Failed to fetch cutoff status'
@@ -120,6 +157,11 @@ export async function addExhibitorMember(data: {
 }) {
   try {
     const headers = await getPortalAuthHeaders()
+
+    if (!headers) {
+      return { success: false, error: 'key incorrect' }
+    }
+
     const response = await api.post('/v1/exhibitor/members', data, { headers })
     
     return { 
@@ -129,6 +171,7 @@ export async function addExhibitorMember(data: {
   } catch (error: any) {
     console.error('Error adding member:', error)
     if (isTokenExpiredError(error)) {
+      await clearAuthCookies()
       return { success: false, error: 'key incorrect' }
     }
     const errMsg = error.response?.data?.message || 'Failed to add member'
@@ -154,6 +197,11 @@ export async function updateExhibitorMember(data: {
 }) {
   try {
     const headers = await getPortalAuthHeaders()
+
+    if (!headers) {
+      return { success: false, error: 'key incorrect' }
+    }
+
     const response = await api.put('/v1/exhibitor/members/', data, { headers })
     
     return { 
@@ -163,6 +211,7 @@ export async function updateExhibitorMember(data: {
   } catch (error: any) {
     console.error('Error updating member:', error)
     if (isTokenExpiredError(error)) {
+      await clearAuthCookies()
       return { success: false, error: 'key incorrect' }
     }
     const errMsg = error.response?.data?.message || 'Failed to update member'
@@ -174,6 +223,11 @@ export async function updateExhibitorMember(data: {
 export async function toggleExhibitorMemberStatus(memberUuid: string) {
   try {
     const headers = await getPortalAuthHeaders()
+
+    if (!headers) {
+      return { success: false, error: 'key incorrect' }
+    }
+
     const response = await api.patch('/v1/exhibitor/members/toggle_status', {
       member_uuid: memberUuid
     }, { headers })
@@ -185,6 +239,7 @@ export async function toggleExhibitorMemberStatus(memberUuid: string) {
   } catch (error: any) {
     console.error('Error toggling member status:', error)
     if (isTokenExpiredError(error)) {
+      await clearAuthCookies()
       return { success: false, error: 'key incorrect' }
     }
     const errMsg = error.response?.data?.message || 'Failed to toggle member status'
@@ -196,6 +251,11 @@ export async function toggleExhibitorMemberStatus(memberUuid: string) {
 export async function resendMemberEmailConfirmation(data: { member_uuid: string, email: string }) {
   try {
     const headers = await getPortalAuthHeaders()
+
+    if (!headers) {
+      return { success: false, error: 'key incorrect' }
+    }
+
     const response = await api.post('/v1/exhibitor/members/resend_email_comfirmation', [
       {
         member_uuid: data.member_uuid,
@@ -210,6 +270,7 @@ export async function resendMemberEmailConfirmation(data: { member_uuid: string,
   } catch (error: any) {
     console.error('Error resending email confirmation:', error)
     if (isTokenExpiredError(error)) {
+      await clearAuthCookies()
       return { success: false, error: 'key incorrect' }
     }
     const errMsg = error.response?.data?.message || 'Failed to resend email confirmation'
