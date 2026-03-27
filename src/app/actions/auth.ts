@@ -3,6 +3,7 @@
 import { cookies } from 'next/headers'
 import { AxiosError } from 'axios'
 import api from '@/lib/api'
+import { getJwtExpirationTimestamp } from '@/lib/jwt'
 
 export async function exhibitorLoginAction(formData: FormData) {
   const username = formData.get('username') as string
@@ -25,6 +26,14 @@ export async function exhibitorLoginAction(formData: FormData) {
     }
 
     const { access_token, exhibitor_uuid, project_uuid, expires_in } = result.data
+    const expiresAt = getJwtExpirationTimestamp(access_token)
+    const fallbackExpiresIn = expires_in || 604800
+    const expiresInFromToken =
+      expiresAt === null ? null : Math.max(0, Math.floor((expiresAt - Date.now()) / 1000))
+    const resolvedExpiresIn =
+      expiresInFromToken === null
+        ? fallbackExpiresIn
+        : Math.min(fallbackExpiresIn, expiresInFromToken)
 
     // Store access token in HTTP-only cookie
     const cookieStore = await cookies()
@@ -32,7 +41,7 @@ export async function exhibitorLoginAction(formData: FormData) {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: result.data.expires_in || 604800,
+      maxAge: resolvedExpiresIn,
       path: '/',
     })
 
@@ -41,7 +50,7 @@ export async function exhibitorLoginAction(formData: FormData) {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: result.data.expires_in || 604800,
+      maxAge: resolvedExpiresIn,
       path: '/',
     })
 
@@ -50,13 +59,13 @@ export async function exhibitorLoginAction(formData: FormData) {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: result.data.expires_in || 604800,
+      maxAge: resolvedExpiresIn,
       path: '/',
     })
 
     return {
       success: true,
-      expiresIn: expires_in || 604800,
+      expiresIn: resolvedExpiresIn,
       user: {
         id: exhibitor_uuid,
         username,

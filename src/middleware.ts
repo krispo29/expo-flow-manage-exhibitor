@@ -1,5 +1,12 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { getJwtExpirationTimestamp } from '@/lib/jwt'
+
+function clearAuthCookies(response: NextResponse) {
+  response.cookies.delete('access_token')
+  response.cookies.delete('project_uuid')
+  response.cookies.delete('user_role')
+}
 
 export function middleware(request: NextRequest) {
   // Get the path of the request
@@ -11,19 +18,33 @@ export function middleware(request: NextRequest) {
 
   // Extract the access token from cookies
   const token = request.cookies.get('access_token')?.value
+  const expiresAt = token ? getJwtExpirationTimestamp(token) : null
+  const hasValidToken = Boolean(token) && expiresAt !== null && expiresAt > Date.now()
 
   // Redirect to login if accessing a protected route without a token
-  if (isProtectedRoute && !token) {
-    return NextResponse.redirect(new URL('/login', request.url))
+  if (isProtectedRoute && !hasValidToken) {
+    const response = NextResponse.redirect(new URL('/login', request.url))
+
+    if (token) {
+      clearAuthCookies(response)
+    }
+
+    return response
   }
 
   // Redirect to exhibitor dashboard if accessing login page with a token
-  if (isPublicRoute && token) {
+  if (isPublicRoute && hasValidToken) {
     return NextResponse.redirect(new URL('/exhibitor', request.url))
   }
 
   // Continue with the request if no redirect is needed
-  return NextResponse.next()
+  const response = NextResponse.next()
+
+  if (token && !hasValidToken) {
+    clearAuthCookies(response)
+  }
+
+  return response
 }
 
 // Specify the paths where the middleware should run

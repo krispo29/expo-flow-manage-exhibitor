@@ -15,20 +15,44 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     if (!isHydrated) return
 
     clearExpiredSession()
+  }, [clearExpiredSession, isHydrated])
 
-    if (expiresAt && expiresAt <= Date.now()) {
-      void (async () => {
-        logout()
+  useEffect(() => {
+    if (!isHydrated) return
+
+    const endSession = async () => {
+      logout()
+
+      try {
         await logoutAction()
+      } finally {
         router.replace('/login')
-      })()
-      return
+      }
     }
 
     if (!isAuthenticated || !user) {
       router.replace('/login')
+      return
     }
-  }, [clearExpiredSession, expiresAt, isAuthenticated, isHydrated, logout, router, user])
+
+    if (expiresAt === null) {
+      void endSession()
+      return
+    }
+
+    const remainingMs = expiresAt - Date.now()
+
+    if (remainingMs <= 0) {
+      void endSession()
+      return
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      void endSession()
+    }, remainingMs)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [expiresAt, isAuthenticated, isHydrated, logout, router, user])
 
   if (
     !isHydrated ||
