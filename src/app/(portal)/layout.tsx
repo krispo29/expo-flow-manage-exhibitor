@@ -3,12 +3,14 @@ import { AuthErrorHandler } from "@/components/auth-error-handler"
 import { PortalNavbar } from "@/components/portal-navbar"
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
+import { hasPortalSession } from "@/lib/auth-session"
 
 export default async function PortalLayout({ children }: { readonly children: React.ReactNode }) {
   const cookieStore = await cookies()
   const token = cookieStore.get('access_token')?.value
+  const projectUuid = cookieStore.get('project_uuid')?.value
 
-  if (!token) {
+  if (!hasPortalSession({ token, projectUuid })) {
     redirect('/login')
   }
 
