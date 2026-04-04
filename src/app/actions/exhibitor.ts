@@ -179,6 +179,35 @@ export async function addExhibitorMember(data: {
   }
 }
 
+// POST /exhibitors/members (Public Onsite - Add Member)
+export async function addPublicOnsiteExhibitorMember(data: {
+  exhibitor_uuid: string
+  title: string
+  title_other: string
+  first_name: string
+  last_name: string
+  job_position: string
+  mobile_country_code: string
+  mobile_number: string
+  email: string
+  company_name: string
+  company_country: string
+  company_tel: string
+}) {
+  try {
+    const response = await api.post('/exhibitors/members', data)
+
+    return {
+      success: true,
+      data: response.data.data,
+    }
+  } catch (error: any) {
+    console.error('Error adding public onsite member:', error)
+    const errMsg = error.response?.data?.message || 'Failed to add member'
+    return { success: false, error: errMsg }
+  }
+}
+
 // PUT /v1/exhibitors/members/ (Portal - Update Member)
 export async function updateExhibitorMember(data: {
   exhibitor_uuid: string
