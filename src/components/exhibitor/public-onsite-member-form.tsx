@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/select'
 import { countries } from '@/lib/countries'
 import { openBadgePreviewWindow, openBadgePrintWindow } from '@/lib/badge-template'
-import { ArrowRight, BadgePlus, CheckCircle2, ExternalLink, Loader2, Printer, ShieldCheck } from 'lucide-react'
+import { ArrowRight, BadgePlus, CheckCircle2, ExternalLink, Loader2, Printer } from 'lucide-react'
 import { toast } from 'sonner'
 
 const TITLES = ['Mr.', 'Ms.', 'Mrs.', 'Dr.', 'Prof.', 'Miss']
@@ -251,6 +251,10 @@ export function PublicOnsiteMemberForm({ exhibitorUuid }: PublicOnsiteMemberForm
                 />
               </div>
 
+              <div className="w-full rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-left text-sm leading-6 text-amber-900">
+                If you close this page, the QR code will disappear. Please do not close this page until it has been scanned.
+              </div>
+
               <div className="flex w-full flex-col gap-3 sm:flex-row">
                 <Button
                   type="button"
@@ -293,7 +297,7 @@ export function PublicOnsiteMemberForm({ exhibitorUuid }: PublicOnsiteMemberForm
     <Card className="overflow-hidden border-white/70 bg-white/85 shadow-2xl shadow-slate-950/10 backdrop-blur">
       <div className="h-1.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500" />
       <CardContent className="p-6 sm:p-8">
-        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="mb-8 space-y-3">
           <div className="space-y-3">
             <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">
               <BadgePlus className="h-3.5 w-3.5" />
@@ -305,14 +309,6 @@ export function PublicOnsiteMemberForm({ exhibitorUuid }: PublicOnsiteMemberForm
                 Complete the form below to register an exhibitor team member for onsite access.
               </p>
             </div>
-          </div>
-
-          <div className="rounded-2xl border border-slate-200 bg-slate-50/90 px-4 py-3 text-left shadow-sm">
-            <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-              <ShieldCheck className="h-4 w-4 text-emerald-600" />
-              Exhibitor UUID
-            </div>
-            <p className="mt-2 break-all font-mono text-xs text-slate-500">{exhibitorUuid}</p>
           </div>
         </div>
 
