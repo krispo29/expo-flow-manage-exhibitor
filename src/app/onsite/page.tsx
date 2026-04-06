@@ -13,13 +13,13 @@ export default async function OnsitePage({ searchParams }: OnsitePageProps) {
   const hasExhibitorUuid = exhibitorUuid.trim().length > 0
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.18),_transparent_28%),radial-gradient(circle_at_bottom_right,_rgba(6,182,212,0.14),_transparent_32%),linear-gradient(180deg,_#f6fbfa_0%,_#eef6f8_100%)] px-4 py-10 sm:px-6 lg:px-8">
+    <main className="relative min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.18),_transparent_28%),radial-gradient(circle_at_bottom_right,_rgba(6,182,212,0.14),_transparent_32%),linear-gradient(180deg,_#f6fbfa_0%,_#eef6f8_100%)] px-4 py-8 sm:py-12 sm:px-6 lg:px-8">
       <div className="absolute inset-0">
         <div className="absolute left-[-8rem] top-10 h-64 w-64 rounded-full bg-emerald-300/20 blur-3xl" />
         <div className="absolute bottom-0 right-[-6rem] h-72 w-72 rounded-full bg-cyan-300/20 blur-3xl" />
       </div>
 
-      <div className="relative mx-auto flex min-h-[calc(100vh-5rem)] max-w-5xl items-center justify-center">
+      <div className="relative mx-auto flex w-full max-w-5xl flex-col justify-center min-h-[calc(100dvh-5rem)]">
         {hasExhibitorUuid ? (
           <div className="w-full animate-fade-in-up">
             <PublicOnsiteMemberForm exhibitorUuid={exhibitorUuid} />

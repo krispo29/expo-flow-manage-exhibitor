@@ -86,17 +86,17 @@ export function PublicOnsiteMemberForm({ exhibitorUuid }: PublicOnsiteMemberForm
     setIsOtherTitle(false)
     setCustomTitle('')
     setFormData({
-      first_name: 'Test',
-      last_name: 'Member',
+      first_name: 'Somsak',
+      last_name: 'Saetang',
       title: 'Mr.',
       title_other: '',
-      job_position: 'Sales Manager',
-      email: `test.member.${Date.now()}@example.com`,
+      job_position: 'Business Development Manager',
+      email: `somsak.s.${Date.now()}@test-exhibitor.com`,
       mobile_country_code: '66',
-      mobile_number: '812345678',
-      company_name: 'Mockup Exhibitor Co., Ltd.',
+      mobile_number: '0812345678',
+      company_name: 'Innovative Tech Solutions Co., Ltd.',
       company_country: 'TH',
-      company_tel: '022222222',
+      company_tel: '025551234',
     })
     toast.success('Mockup data filled')
   }
@@ -221,7 +221,7 @@ export function PublicOnsiteMemberForm({ exhibitorUuid }: PublicOnsiteMemberForm
   if (isSuccess) {
     return (
       <Card className="border-emerald-200/80 bg-white/90 shadow-2xl shadow-emerald-950/10 backdrop-blur">
-        <CardContent className="flex flex-col items-center gap-6 px-6 py-10 text-center">
+        <CardContent className="flex flex-col items-center gap-5 px-5 py-8 text-center sm:gap-6 sm:px-6 sm:py-10">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
             <CheckCircle2 className="h-8 w-8" />
           </div>
@@ -250,7 +250,7 @@ export function PublicOnsiteMemberForm({ exhibitorUuid }: PublicOnsiteMemberForm
                   companyName={registeredMember.company_name}
                   countryCode={registeredMember.company_country}
                   registrationCode={registeredMember.registration_code}
-                  category="EXHIBITOR"
+                  category="VISITOR"
                   position={registeredMember.job_position}
                 />
               </div>
@@ -269,14 +269,14 @@ export function PublicOnsiteMemberForm({ exhibitorUuid }: PublicOnsiteMemberForm
                   <ExternalLink className="mr-2 h-4 w-4" />
                   Preview Window
                 </Button>
-                <Button
+                {/* <Button
                   type="button"
                   onClick={openRegisteredBadgePrint}
                   className="h-11 flex-1 rounded-2xl bg-gradient-to-r from-emerald-700 to-teal-700 text-white hover:from-emerald-600 hover:to-teal-600"
                 >
                   <Printer className="mr-2 h-4 w-4" />
                   Print Badge
-                </Button>
+                </Button> */}
               </div>
             </>
           ) : (
@@ -285,13 +285,13 @@ export function PublicOnsiteMemberForm({ exhibitorUuid }: PublicOnsiteMemberForm
             </div>
           )}
 
-          <Button
+          {/* <Button
             type="button"
             onClick={() => setIsSuccess(false)}
             className="h-11 rounded-2xl bg-emerald-700 px-5 text-white hover:bg-emerald-600"
           >
             Add another member
-          </Button>
+          </Button> */}
         </CardContent>
       </Card>
     )
@@ -300,7 +300,7 @@ export function PublicOnsiteMemberForm({ exhibitorUuid }: PublicOnsiteMemberForm
   return (
     <Card className="overflow-hidden border-white/70 bg-white/85 shadow-2xl shadow-slate-950/10 backdrop-blur">
       <div className="h-1.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500" />
-      <CardContent className="p-6 sm:p-8">
+      <CardContent className="p-5 sm:p-8">
         <div className="mb-8 space-y-3">
           <div className="space-y-3">
             <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">
@@ -317,12 +317,12 @@ export function PublicOnsiteMemberForm({ exhibitorUuid }: PublicOnsiteMemberForm
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:gap-6">
             <div className="space-y-2">
               <Label htmlFor="title" className="text-xs font-semibold uppercase tracking-wider text-slate-500">
                 Title <span className="text-red-500">*</span>
               </Label>
-              <div className="flex gap-2">
+              <div className="flex flex-col gap-3 sm:flex-row sm:gap-2">
                 <Select
                   value={formData.title}
                   onValueChange={(value) => {
@@ -337,7 +337,7 @@ export function PublicOnsiteMemberForm({ exhibitorUuid }: PublicOnsiteMemberForm
                     setFormData((current) => ({ ...current, title: value }))
                   }}
                 >
-                  <SelectTrigger className="h-11 w-[130px] rounded-xl border-slate-200 bg-white">
+                  <SelectTrigger className="h-11 w-full rounded-xl border-slate-200 bg-white sm:w-[130px]">
                     <SelectValue placeholder="Select" />
                   </SelectTrigger>
                   <SelectContent>
@@ -354,7 +354,7 @@ export function PublicOnsiteMemberForm({ exhibitorUuid }: PublicOnsiteMemberForm
                   <Input
                     value={customTitle}
                     onChange={(event) => setCustomTitle(event.target.value)}
-                    className="h-11 rounded-xl border-slate-200 bg-white"
+                    className="h-11 w-full rounded-xl border-slate-200 bg-white"
                     placeholder="Specify title"
                     required
                   />
@@ -443,8 +443,8 @@ export function PublicOnsiteMemberForm({ exhibitorUuid }: PublicOnsiteMemberForm
               <Label htmlFor="mobile_number" className="text-xs font-semibold uppercase tracking-wider text-slate-500">
                 Mobile Number <span className="text-red-500">*</span>
               </Label>
-              <div className="flex flex-col gap-2 sm:flex-row">
-                <div className="sm:w-[180px] sm:shrink-0">
+              <div className="flex flex-col gap-3 sm:flex-row sm:gap-2">
+                <div className="w-full sm:w-[180px] sm:shrink-0">
                   <CountrySelector
                     value={selectedPhoneCountry}
                     onChange={(countryCode) => {
@@ -522,7 +522,7 @@ export function PublicOnsiteMemberForm({ exhibitorUuid }: PublicOnsiteMemberForm
               Please verify the details carefully before submitting.
             </p>
             <div className="flex flex-col gap-3 sm:flex-row">
-              <Button
+              {/* <Button
                 type="button"
                 variant="outline"
                 onClick={fillMockData}
@@ -530,7 +530,7 @@ export function PublicOnsiteMemberForm({ exhibitorUuid }: PublicOnsiteMemberForm
                 className="h-11 rounded-2xl border-slate-300"
               >
                 Fill Mockup Data
-              </Button>
+              </Button> */}
               <Button
                 type="submit"
                 disabled={isSubmitting}
