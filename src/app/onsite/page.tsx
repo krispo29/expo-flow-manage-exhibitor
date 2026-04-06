@@ -1,4 +1,4 @@
-import { PublicOnsiteMemberForm } from '@/components/exhibitor/public-onsite-member-form'
+import { PublicOnsiteWizard } from '@/components/exhibitor/public-onsite-wizard'
 import { Card, CardContent } from '@/components/ui/card'
 import { AlertTriangle, Link2 } from 'lucide-react'
 
@@ -22,7 +22,7 @@ export default async function OnsitePage({ searchParams }: OnsitePageProps) {
       <div className="relative mx-auto flex w-full max-w-5xl flex-col justify-center min-h-[calc(100dvh-5rem)]">
         {hasExhibitorUuid ? (
           <div className="w-full animate-fade-in-up">
-            <PublicOnsiteMemberForm exhibitorUuid={exhibitorUuid} />
+            <PublicOnsiteWizard exhibitorUuid={exhibitorUuid} />
           </div>
         ) : (
           <Card className="w-full max-w-xl border-amber-200/70 bg-white/90 shadow-2xl shadow-slate-950/10 backdrop-blur">
