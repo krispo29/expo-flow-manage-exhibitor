@@ -446,13 +446,13 @@ export function PublicOnsiteWizard({ exhibitorUuid }: PublicOnsiteWizardProps) {
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
             
-            <Button
+            {/* <Button
               variant="ghost"
               onClick={fillMockData}
               className="mt-4 w-full rounded-2xl text-slate-400 hover:bg-emerald-50 hover:text-emerald-600"
             >
               Fill Mockup Data (5 Members)
-            </Button>
+            </Button> */}
           </div>
         </CardContent>
       </Card>
