@@ -1,375 +1,248 @@
-# Print Badge Guide
+# Badge Preview / Print Guide
 
-คู่มือโค้ดการปริ้น Badge — คัดมาจากโปรเจค `expo-flow-test` พร้อมใช้กับโปรเจคอื่นได้ทันที
+คู่มือนี้สรุปวิธีนำระบบ `preview badge` และ `print badge` จากโปรเจกต์นี้ไปใช้ในโปรเจกต์อื่น รวมถึงบอกว่ารูปพื้นหลัง badge ใน preview มาจากไหน
 
----
+## โครงสร้างที่ใช้ในโปรเจกต์นี้
 
-## สารบัญ
+ระบบ badge ปัจจุบันแยกเป็น 2 ส่วนหลัก
 
-1. [Flow การทำงาน](#1-flow-การทำงาน)
-2. [printBadge() Function](#2-printbadge-function)
-3. [วิธีเรียกใช้งาน](#3-วิธีเรียกใช้งาน)
-4. [Customization Guide](#4-customization-guide)
-5. [สิ่งที่ต้องระวัง](#5-สิ่งที่ต้องระวัง)
+1. `Preview badge`
+   ใช้คอมโพเนนต์ React ชื่อ `ConfirmationBadge`
 
----
+ไฟล์:
 
-## 1. Flow การทำงาน
+- `src/components/confirmation-badge.tsx`
 
-```
-User กด "Print Badge"
-    → window.open('', '_blank')           // เปิดหน้าต่างใหม่
-    → document.write(HTML Template)        // เขียน HTML badge ลงไป
-    → รอ 500ms ให้ font + QR โหลดเสร็จ
-    → window.print()                       // เรียก print dialog อัตโนมัติ
-    → window.onafterprint → window.close() // ปิดหน้าต่างอัตโนมัติ
-```
+2. `Print / Preview in new window`
+   ใช้ helper กลางใน `src/lib/badge-template.ts`
 
-> **QR Code** ใช้ API `api.qrserver.com` (free, ไม่ต้องติดตั้ง library เพิ่ม)
+ไฟล์:
 
----
+- `src/lib/badge-template.ts`
 
-## 2. printBadge() Function
+ภายในไฟล์นี้มีสิ่งสำคัญดังนี้
 
-สร้างไฟล์ `utils/print-badge.ts` แล้ว copy โค้ดนี้ไปวาง:
+- `BADGE_TEMPLATE`
+  ใช้เก็บค่าตำแหน่ง ขนาด และ spacing ของ badge ทั้งหมด
+- `getBadgeQrUrl(registrationCode)`
+  ใช้สร้าง URL ของ QR code
+- `buildBadgeHtml(data)`
+  ใช้สร้าง HTML ของ badge 1 ใบ
+- `buildBadgePrintDocument(title, badges)`
+  ใช้สร้าง HTML document สำหรับพิมพ์
+- `openBadgePreviewWindow(title, badges)`
+  ใช้เปิดหน้าต่าง preview
+- `openBadgePrintWindow(title, badges)`
+  ใช้เปิดหน้าต่าง print
 
-```typescript
-// utils/print-badge.ts
+## รูปพื้นหลัง badge ใน preview มาจากไหน
 
-interface PrintBadgeData {
-  firstName: string
-  lastName: string
-  companyName: string
-  country: string // ชื่อประเทศ เช่น "THAILAND"
-  registrationCode: string
-  category?: string // default: "VISITOR"
-  eventDate?: string // default: "20-22 May 2026"
-  venue?: string
-  logoUrl?: string // URL ของ logo (absolute)
-  organizerName?: string // default: "VNU Asia Pacific"
-}
+ตอนนี้รูปพื้นหลัง badge ในทั้ง preview และ print อ้างอิงจากค่าเดียวกันใน:
 
-export function printBadge(data: PrintBadgeData): void {
-  const {
-    firstName,
-    lastName,
-    companyName,
-    country,
-    registrationCode,
-    category = 'VISITOR',
-    eventDate = '20-22 May 2026',
-    venue = 'SAIGON EXHIBITION AND CONVENTION CENTER (SECC), HO CHI MINH CITY',
-    logoUrl = `${window.location.origin}/images/logos/logo_duo.jpg`,
-    organizerName = 'VNU Asia Pacific',
-  } = data
+- `src/lib/badge-template.ts`
 
-  const printWindow = window.open('', '_blank')
-  if (!printWindow) {
-    alert('Please allow pop-ups to print the badge.')
-    return
-  }
+ค่าปัจจุบันคือ:
 
-  printWindow.document.write(`
-    <html>
-    <head>
-      <title>Print Badge - ${registrationCode}</title>
-      <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-      <style>
-        * {
-          margin: 0; padding: 0; box-sizing: border-box;
-          -webkit-print-color-adjust: exact !important;
-          print-color-adjust: exact !important;
-          color-adjust: exact !important;
-        }
-        body {
-          font-family: 'Montserrat', sans-serif;
-          padding: 20px;
-          background: #f5f5f5;
-        }
-        .badge-container {
-          max-width: 500px;
-          margin: 0 auto;
-          background: white;
-          border-radius: 8px;
-          overflow: hidden;
-          box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-        }
-        .top-bar {
-          height: 8px;
-          background: linear-gradient(90deg, #1a5c4c, #2d8b6f) !important;
-          -webkit-print-color-adjust: exact !important;
-          print-color-adjust: exact !important;
-        }
-        .header {
-          padding: 20px 24px;
-          display: flex;
-          justify-content: flex-end;
-          align-items: flex-start;
-        }
-        .header-right {
-          display: flex;
-          gap: 12px;
-          align-items: center;
-        }
-        .header-right img {
-          height: 50px;
-          width: auto;
-          object-fit: contain;
-        }
-        .event-info {
-          padding: 12px 24px;
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          border-bottom: 1px solid #eee;
-        }
-        .event-date {
-          font-size: 13px;
-          font-weight: 600;
-          color: #1a5c4c;
-          letter-spacing: 1px;
-        }
-        .event-dot {
-          width: 8px; height: 8px;
-          background: #1a5c4c !important;
-          border-radius: 50%;
-          -webkit-print-color-adjust: exact !important;
-          print-color-adjust: exact !important;
-        }
-        .event-venue {
-          font-size: 11px;
-          color: #1a5c4c;
-          letter-spacing: 1px;
-          text-transform: uppercase;
-          font-weight: 500;
-        }
-        .attendee-section {
-          padding: 30px 24px;
-          text-align: center;
-        }
-        .attendee-name {
-          font-size: 26px;
-          font-weight: 700;
-          color: #1a1a1a;
-          margin-bottom: 8px;
-          text-transform: uppercase;
-          letter-spacing: 1px;
-        }
-        .attendee-company {
-          font-size: 14px;
-          color: #1a5c4c;
-          font-weight: 600;
-          margin-bottom: 4px;
-          text-transform: uppercase;
-          letter-spacing: 1px;
-        }
-        .attendee-country {
-          font-size: 12px;
-          color: #d4a853;
-          font-weight: 500;
-          letter-spacing: 1px;
-        }
-        .qr-section {
-          padding: 20px;
-          text-align: center;
-        }
-        .qr-code {
-          width: 140px; height: 140px;
-          margin: 0 auto 16px;
-          background: white;
-          padding: 8px;
-          border: 1px solid #ddd;
-        }
-        .qr-code img { width: 100%; height: 100%; }
-        .reg-label {
-          font-size: 10px;
-          color: #888;
-          letter-spacing: 2px;
-          margin-bottom: 4px;
-          font-weight: 500;
-        }
-        .reg-code {
-          font-size: 22px;
-          font-weight: 700;
-          color: #1a5c4c;
-          letter-spacing: 2px;
-        }
-        .footer {
-          background: #1a5c4c !important;
-          padding: 16px 24px;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          -webkit-print-color-adjust: exact !important;
-          print-color-adjust: exact !important;
-        }
-        .footer-category {
-          font-size: 18px;
-          font-weight: 700;
-          color: white;
-          letter-spacing: 3px;
-        }
-        .footer-org { text-align: right; }
-        .footer-org-label {
-          font-size: 8px;
-          color: rgba(255,255,255,0.7);
-          letter-spacing: 1px;
-          font-weight: 500;
-        }
-        .footer-org-name {
-          font-size: 11px;
-          color: white;
-          font-weight: 600;
-        }
-        @media print {
-          * {
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-            color-adjust: exact !important;
-          }
-        }
-      </style>
-    </head>
-    <body>
-      <div class="badge-container">
-        <div class="top-bar"></div>
-        <div class="header">
-          <div class="header-right">
-            <img src="${logoUrl}" alt="Event Logo" />
-          </div>
-        </div>
-        <div class="event-info">
-          <span class="event-date">${eventDate}</span>
-          <span class="event-dot"></span>
-          <span class="event-venue">${venue}</span>
-        </div>
-        <div class="attendee-section">
-          <div class="attendee-name">${firstName} ${lastName}</div>
-          <div class="attendee-company">${companyName}</div>
-          <div class="attendee-country">${country.toUpperCase()}</div>
-        </div>
-        <div class="qr-section">
-          <div class="qr-code">
-            <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(registrationCode)}" alt="QR Code" />
-          </div>
-          <div class="reg-label">REGISTRATION CODE</div>
-          <div class="reg-code">${registrationCode}</div>
-        </div>
-        <div class="footer">
-          <div class="footer-category">${category}</div>
-          <div class="footer-org">
-            <div class="footer-org-label">ORGANIZED BY</div>
-            <div class="footer-org-name">${organizerName}</div>
-          </div>
-        </div>
-      </div>
-      <script>
-        window.onload = function() {
-          var closePrint = function() { window.close(); };
-          window.onafterprint = closePrint;
-          if (window.matchMedia) {
-            var mediaQueryList = window.matchMedia('print');
-            mediaQueryList.addListener(function(mql) {
-              if (!mql.matches) { closePrint(); }
-            });
-          }
-          setTimeout(function() { window.print(); }, 500);
-        }
-      </script>
-    </body>
-    </html>
-  `)
-  printWindow.document.close()
-}
+```ts
+backgroundImageUrl: "https://static.expoflow.co/img/badge-preview.png";
 ```
 
----
+หมายความว่า:
 
-## 3. วิธีเรียกใช้งาน
+- preview badge บนหน้าเว็บใช้รูปจาก URL นี้
+- print document ก็ใช้ URL เดียวกัน
+- ถ้าจะเปลี่ยนพื้นหลัง badge ให้เปลี่ยนที่ `BADGE_TEMPLATE.backgroundImageUrl` จุดเดียว
 
-### 3.1 จาก React Button
+## วิธีนำไปใช้ในโปรเจกต์อื่น
+
+คัดลอกไฟล์หลัก 2 ไฟล์นี้ไปก่อน
+
+- `src/lib/badge-template.ts` - มีแล้ว
+- `src/components/confirmation-badge.tsx` - มีแล้ว
+
+จากนั้นตรวจให้โปรเจกต์ใหม่มี dependency และข้อมูลต่อไปนี้
+
+สิ่งที่ต้องมี:
+
+- React / Next.js หรือ React app ที่รองรับ client component
+- ฟอนต์ที่ต้องการใช้กับ badge
+- ข้อมูลประเทศ ถ้าจะใช้ `countryCode` แล้วแปลงเป็นชื่อประเทศเหมือนโปรเจกต์นี้
+
+ถ้าโปรเจกต์ใหม่ไม่มี `@/mock` หรือไม่มี list ประเทศ:
+
+- แก้ `ConfirmationBadge` ให้รับ `countryLabel` ตรง ๆ
+- หรือส่งชื่อประเทศมาแทน code
+
+## วิธีใช้ Preview Badge
+
+ในโปรเจกต์นี้ preview badge ใช้แบบนี้:
 
 ```tsx
-import { printBadge } from '@/utils/print-badge'
-
-;<Button
-  onClick={() =>
-    printBadge({
-      firstName: 'JOHN',
-      lastName: 'SMITH',
-      companyName: 'GLOBAL AGRI SOLUTIONS',
-      country: 'THAILAND',
-      registrationCode: 'VO100776983',
-      category: 'VISITOR',
-    })
-  }
->
-  Print Badge
-</Button>
+<ConfirmationBadge
+  firstName="John"
+  lastName="Doe"
+  companyName="Expo Flow"
+  countryCode="TH"
+  registrationCode="ABCD1234"
+  category="VISITOR"
+  position="MANAGER"
+/>
 ```
 
-### 3.2 กับ dynamic data จาก form/API
+Props ที่ใช้จริงตอนนี้มี:
 
-```tsx
-const handlePrintBadge = () => {
-  printBadge({
-    firstName: memberData.firstName || '',
-    lastName: memberData.lastName || '',
-    companyName: memberData.companyName || '',
-    country: memberData.companyCountry || 'THAILAND',
-    registrationCode: registrationCode,
-    category: 'VISITOR',
-    eventDate: '20-22 May 2026',
-    venue: 'SAIGON EXHIBITION AND CONVENTION CENTER (SECC), HO CHI MINH CITY',
-    logoUrl: `${window.location.origin}/images/logos/logo_duo.jpg`,
-    organizerName: 'VNU Asia Pacific',
-  })
-}
+- `firstName`
+- `lastName`
+- `companyName`
+- `countryCode`
+- `registrationCode`
+- `category`
+- `position`
+
+ถ้าโปรเจกต์ใหม่ไม่ต้องแปลง country code:
+
+- แนะนำให้แก้คอมโพเนนต์ให้รับ `countryLabel` ตรง ๆ จะง่ายกว่า
+
+## วิธีใช้ Print Badge
+
+ในโปรเจกต์นี้เวลาอยากสั่งพิมพ์ badge 1 ใบ ใช้ `openBadgePrintWindow(...)`
+
+ตัวอย่าง:
+
+```ts
+import { openBadgePrintWindow } from "@/lib/badge-template";
+
+openBadgePrintWindow("Print Badge - ABCD1234", [
+  {
+    firstName: "John",
+    lastName: "Doe",
+    position: "MANAGER",
+    companyName: "Expo Flow",
+    countryLabel: "THAILAND",
+    registrationCode: "ABCD1234",
+    category: "VISITOR",
+  },
+]);
 ```
 
-### 3.3 กับ user data จาก store
+ถ้าต้องการพิมพ์หลายใบ:
 
-```tsx
-const { user } = useAuthStore()
-
-printBadge({
-  firstName: profileData?.info?.first_name || user.info?.firstName || '',
-  lastName: profileData?.info?.last_name || user.info?.lastName || '',
-  companyName: profileData?.info?.company_name || user.info?.companyName || '',
-  country: profileData?.info?.company_country || 'THAILAND',
-  registrationCode: user.registrationCode || '',
-})
+```ts
+openBadgePrintWindow("Print All Badges", [
+  {
+    firstName: "John",
+    lastName: "Doe",
+    position: "MANAGER",
+    companyName: "Expo Flow",
+    countryLabel: "THAILAND",
+    registrationCode: "ABCD1234",
+    category: "VISITOR",
+  },
+  {
+    firstName: "Jane",
+    lastName: "Smith",
+    position: "DIRECTOR",
+    companyName: "Expo Flow",
+    countryLabel: "VIETNAM",
+    registrationCode: "EFGH5678",
+    category: "VISITOR",
+  },
+]);
 ```
 
----
+ระบบจะ:
 
-## 4. Customization Guide
+- เปิดหน้าต่างใหม่
+- render badge ตาม template เดียวกัน
+- สั่ง `window.print()` อัตโนมัติ
 
-### เปลี่ยนสี Brand
+## วิธีใช้ Preview Window
 
-| ตำแหน่ง             | ค่าปัจจุบัน         | ความหมาย               |
-| ------------------- | ------------------- | ---------------------- |
-| `.top-bar`          | `#1a5c4c → #2d8b6f` | แถบสีด้านบน (gradient) |
-| `.footer`           | `#1a5c4c`           | แถบสีด้านล่าง          |
-| text colors         | `#1a5c4c`           | สีข้อความหลัก          |
-| `.attendee-country` | `#d4a853`           | สีประเทศ (ทอง)         |
+ถ้าต้องการเปิดหน้าต่าง preview โดยยังไม่สั่ง print ทันที ให้ใช้:
 
-### เปลี่ยน Font
+```ts
+import { openBadgePreviewWindow } from "@/lib/badge-template";
 
-แก้ Google Fonts URL ใน `<link>` และ `body { font-family: ... }`
+openBadgePreviewWindow("Preview Badge - ABCD1234", [
+  {
+    firstName: "John",
+    lastName: "Doe",
+    position: "MANAGER",
+    companyName: "Expo Flow",
+    countryLabel: "THAILAND",
+    registrationCode: "ABCD1234",
+    category: "VISITOR",
+  },
+]);
+```
 
-### เปลี่ยนขนาด
+## จุดที่ควรปรับเมื่อย้ายไปโปรเจกต์ใหม่
 
-- Badge: แก้ `.badge-container { max-width: 500px; }`
-- QR: แก้ `.qr-code { width/height }` และ URL parameter `size=140x140`
+ส่วนที่มักต้องปรับมีดังนี้
 
----
+1. Background badge
 
-## 5. สิ่งที่ต้องระวัง ⚠️
+- ปรับที่ `BADGE_TEMPLATE.backgroundImageUrl`
 
-1. **Pop-up Blocker** — `window.open()` อาจถูกบล็อก ต้องแจ้ง user ให้ allow
-2. **`print-color-adjust: exact`** — จำเป็นให้สีพื้นหลังออกตอนปริ้น
-3. **QR API** — ใช้ `api.qrserver.com` (free) อาจ rate limit ถ้าใช้หนัก
-4. **Google Fonts** — ต้องมี internet ตอนปริ้น
-5. **Logo Path** — ใช้ `window.location.origin` เพื่อ absolute URL ที่ถูกต้อง
-6. **setTimeout 500ms** — รอ font + QR โหลดเสร็จ อาจต้องเพิ่มถ้า internet ช้า
+2. ขนาด badge
+
+- ปรับที่ `BADGE_TEMPLATE.pageSize`
+- `BADGE_TEMPLATE.width`
+- `BADGE_TEMPLATE.height`
+
+3. ตำแหน่งข้อความ
+
+- `BADGE_TEMPLATE.headerSpacerHeight`
+- `BADGE_TEMPLATE.contentAreaHeight`
+- `BADGE_TEMPLATE.contentPadding`
+- `BADGE_TEMPLATE.footerPaddingTop`
+
+4. QR code
+
+- ปรับที่ `getBadgeQrUrl()`
+- ตอนนี้ใช้บริการ:
+
+```ts
+https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=...
+```
+
+ถ้าโปรเจกต์ใหม่ต้องการใช้ QR provider ของตัวเอง ให้แก้ที่ function นี้จุดเดียว
+
+5. ฟอนต์
+
+- print document ใช้ Google Font `Montserrat`
+- preview component ใช้ `var(--font-montserrat), sans-serif`
+
+ถ้าโปรเจกต์ใหม่ไม่มี font นี้:
+
+- เปลี่ยน font ใน `ConfirmationBadge`
+- และเปลี่ยน font link / font-family ใน `buildBadgePrintDocument()`
+
+## ข้อดีของโครงนี้
+
+- preview และ print ใช้ layout เดียวกัน
+- QR ใช้ URL generator เดียวกัน
+- เปลี่ยนตำแหน่ง badge จากที่เดียวได้
+- เปลี่ยน background จากที่เดียวได้
+- ใช้งานซ้ำในหลายหน้า หรือหลายโปรเจกต์ได้ง่าย
+
+## ข้อควรระวัง
+
+- ถ้าโปรเจกต์ใหม่ block external image URL:
+  background badge และ QR จาก URL ภายนอกอาจไม่ขึ้น
+- ถ้าจะให้เสถียรที่สุดใน production:
+  แนะนำให้เก็บ background badge ไว้ใน `public/` ของโปรเจกต์
+- ถ้า browser หรือ printer มีการ scale page อัตโนมัติ:
+  ตำแหน่งอาจคลาดได้ ควรตั้งค่า print ให้ scale 100%
+
+## สรุปสั้น
+
+ถ้าจะย้ายไปโปรเจกต์อื่น ให้ย้ายอย่างน้อย 2 ไฟล์นี้:
+
+- `src/lib/badge-template.ts`
+- `src/components/confirmation-badge.tsx`
+
+และถ้าจะถามว่า background badge ใน preview มาจากไหน:
+
+- มาจาก `BADGE_TEMPLATE.backgroundImageUrl`
+- ค่าปัจจุบันคือ `https://static.expoflow.co/img/badge-preview.png`

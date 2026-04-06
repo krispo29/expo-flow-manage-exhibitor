@@ -108,6 +108,30 @@ export function PublicOnsiteWizard({ exhibitorUuid }: PublicOnsiteWizardProps) {
     setCurrentMemberIndex(0)
   }
 
+  function fillMockData() {
+    const mockCount = 5
+    setMemberCount(mockCount)
+    const mockMembers: MemberFormData[] = Array.from({ length: mockCount }, (_, i) => ({
+      first_name: `First${i + 1}`,
+      last_name: `Last${i + 1}`,
+      title: 'Mr.',
+      title_other: '',
+      job_position: 'Software Engineer',
+      email: `test${i + 1}@example.com`,
+      mobile_country_code: '66',
+      mobile_number: `081234567${i}`,
+      company_name: 'Test Company Co., Ltd.',
+      company_country: 'TH',
+      company_tel: '021234567',
+    }))
+    setMembers(mockMembers)
+    setOtherTitleStates(Array.from({ length: mockCount }, () => false))
+    setCustomTitles(Array.from({ length: mockCount }, () => ''))
+    setCurrentMemberIndex(0)
+    setStep('review')
+    toast.success('Mockup data for 5 members filled')
+  }
+
 
 
   function handleContinueFromCount() {
@@ -420,6 +444,14 @@ export function PublicOnsiteWizard({ exhibitorUuid }: PublicOnsiteWizardProps) {
             >
               Continue
               <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+            
+            <Button
+              variant="ghost"
+              onClick={fillMockData}
+              className="mt-4 w-full rounded-2xl text-slate-400 hover:bg-emerald-50 hover:text-emerald-600"
+            >
+              Fill Mockup Data (5 Members)
             </Button>
           </div>
         </CardContent>
