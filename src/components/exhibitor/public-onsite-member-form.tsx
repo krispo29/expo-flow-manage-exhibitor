@@ -102,6 +102,10 @@ export function PublicOnsiteMemberForm({ exhibitorUuid }: PublicOnsiteMemberForm
   }
 
   function extractRegistrationCode(payload: unknown): string {
+    if (typeof payload === 'string' && payload.trim().length > 0) {
+      return payload.trim()
+    }
+
     if (!payload || typeof payload !== 'object') {
       return ''
     }
