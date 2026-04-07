@@ -84,11 +84,36 @@ const EMPTY_MEMBER: MemberFormData = {
 
 type PublicOnsiteWizardProps = {
   readonly exhibitorUuid: string
+  readonly quota?: number
+  readonly usedQuota?: number
+  readonly totalQuota?: number
+  readonly remainingQuota?: number
 }
 
-export function PublicOnsiteWizard({ exhibitorUuid }: PublicOnsiteWizardProps) {
+export function PublicOnsiteWizard({
+  exhibitorUuid,
+  quota,
+  usedQuota,
+  totalQuota,
+  remainingQuota,
+}: PublicOnsiteWizardProps) {
+  const hasQuotaLimit =
+    typeof remainingQuota === 'number' ||
+    typeof totalQuota === 'number' ||
+    typeof quota === 'number'
+
+  const initialAvailableSlots = Math.max(
+    0,
+    Math.floor(
+      remainingQuota ??
+        ((totalQuota ?? quota ?? MAX_MEMBERS) - (usedQuota ?? 0))
+    )
+  )
+
   const [step, setStep] = useState<WizardStep>('select-count')
-  const [memberCount, setMemberCount] = useState(1)
+  const [memberCount, setMemberCount] = useState(
+    hasQuotaLimit ? Math.min(Math.max(initialAvailableSlots, 0), 1) : 1
+  )
 
   const [members, setMembers] = useState<MemberFormData[]>([EMPTY_MEMBER])
   const [currentMemberIndex, setCurrentMemberIndex] = useState(0)
@@ -96,7 +121,13 @@ export function PublicOnsiteWizard({ exhibitorUuid }: PublicOnsiteWizardProps) {
   const [customTitles, setCustomTitles] = useState<string[]>([''])
   const [results, setResults] = useState<RegisteredMemberResult[]>([])
   const [submittingIndex, setSubmittingIndex] = useState(-1)
+  const [consumedSlots, setConsumedSlots] = useState(0)
 
+  const availableSlots = hasQuotaLimit
+    ? Math.max(0, initialAvailableSlots - consumedSlots)
+    : MAX_MEMBERS
+  const maxSelectableMembers = Math.min(MAX_MEMBERS, availableSlots)
+  const hasAvailableSlots = maxSelectableMembers > 0
 
   const currentMember = members[currentMemberIndex]
   const progressPercent = ((currentMemberIndex + 1) / memberCount) * 100
@@ -109,7 +140,7 @@ export function PublicOnsiteWizard({ exhibitorUuid }: PublicOnsiteWizardProps) {
   }
 
   function fillMockData() {
-    const mockCount = 5
+    const mockCount = Math.min(5, Math.max(maxSelectableMembers, 1))
     setMemberCount(mockCount)
     const mockMembers: MemberFormData[] = Array.from({ length: mockCount }, (_, i) => ({
       first_name: `First${i + 1}`,
@@ -135,6 +166,17 @@ export function PublicOnsiteWizard({ exhibitorUuid }: PublicOnsiteWizardProps) {
 
 
   function handleContinueFromCount() {
+    if (!hasAvailableSlots) {
+      toast.error('This exhibitor has no quota remaining')
+      return
+    }
+
+    if (memberCount > maxSelectableMembers) {
+      toast.error(`You can add up to ${maxSelectableMembers} member(s) only`)
+      setMemberCount(Math.max(1, maxSelectableMembers))
+      return
+    }
+
     initializeMembers(memberCount)
     setStep('fill-forms')
   }
@@ -279,6 +321,12 @@ export function PublicOnsiteWizard({ exhibitorUuid }: PublicOnsiteWizardProps) {
   }
 
   async function handleSubmitAll() {
+    if (hasQuotaLimit && members.length > availableSlots) {
+      toast.error(`Only ${availableSlots} quota slot(s) remaining`)
+      setStep('review')
+      return
+    }
+
     setStep('submitting')
     const allResults: RegisteredMemberResult[] = []
 
@@ -335,6 +383,10 @@ export function PublicOnsiteWizard({ exhibitorUuid }: PublicOnsiteWizardProps) {
     setStep('complete')
 
     const successCount = allResults.filter((r) => r.success).length
+    if (successCount > 0) {
+      setConsumedSlots((prev) => prev + successCount)
+    }
+
     if (successCount === allResults.length) {
       toast.success(`All ${successCount} member(s) registered successfully!`)
     } else {
@@ -344,7 +396,7 @@ export function PublicOnsiteWizard({ exhibitorUuid }: PublicOnsiteWizardProps) {
 
   function handleStartOver() {
     setStep('select-count')
-    setMemberCount(1)
+    setMemberCount(hasQuotaLimit ? Math.min(Math.max(availableSlots, 0), 1) : 1)
 
     setMembers([{ ...EMPTY_MEMBER }])
     setOtherTitleStates([false])
@@ -398,6 +450,12 @@ export function PublicOnsiteWizard({ exhibitorUuid }: PublicOnsiteWizardProps) {
             <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-500">
               Select the number of exhibitor team members you&apos;d like to register for onsite access.
             </p>
+            {hasQuotaLimit && (
+              <div className="mx-auto mt-4 inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-xs font-semibold text-amber-800">
+                <Users className="h-3.5 w-3.5" />
+                Remaining quota: {availableSlots} member{availableSlots === 1 ? '' : 's'}
+              </div>
+            )}
           </div>
 
           {/* Number selector */}
@@ -406,7 +464,7 @@ export function PublicOnsiteWizard({ exhibitorUuid }: PublicOnsiteWizardProps) {
               type="button"
               onClick={() => setMemberCount(Math.max(1, memberCount - 1))}
               className="flex h-14 w-14 items-center justify-center rounded-2xl border-2 border-emerald-100 bg-emerald-50 text-emerald-600 transition-colors hover:border-emerald-200 hover:bg-emerald-100 disabled:opacity-50 disabled:hover:border-emerald-100 disabled:hover:bg-emerald-50"
-              disabled={memberCount <= 1}
+              disabled={memberCount <= 1 || !hasAvailableSlots}
             >
               <Minus className="h-6 w-6" />
             </button>
@@ -420,9 +478,9 @@ export function PublicOnsiteWizard({ exhibitorUuid }: PublicOnsiteWizardProps) {
 
             <button
               type="button"
-              onClick={() => setMemberCount(Math.min(MAX_MEMBERS, memberCount + 1))}
+              onClick={() => setMemberCount(Math.min(maxSelectableMembers, memberCount + 1))}
               className="flex h-14 w-14 items-center justify-center rounded-2xl border-2 border-emerald-100 bg-emerald-50 text-emerald-600 transition-colors hover:border-emerald-200 hover:bg-emerald-100 disabled:opacity-50 disabled:hover:border-emerald-100 disabled:hover:bg-emerald-50"
-              disabled={memberCount >= MAX_MEMBERS}
+              disabled={!hasAvailableSlots || memberCount >= maxSelectableMembers}
             >
               <Plus className="h-6 w-6" />
             </button>
@@ -432,14 +490,24 @@ export function PublicOnsiteWizard({ exhibitorUuid }: PublicOnsiteWizardProps) {
           <div className="mx-auto mt-8 max-w-lg">
             <div className="mb-4 flex items-center justify-center gap-2 text-sm text-slate-500">
               <UserPlus className="h-4 w-4 text-emerald-600" />
-              <span>
-                Registering{' '}
-                <span className="font-bold text-emerald-700">{memberCount}</span>{' '}
-                {memberCount === 1 ? 'member' : 'members'}
-              </span>
+              {hasAvailableSlots ? (
+                <span>
+                  Registering{' '}
+                  <span className="font-bold text-emerald-700">{memberCount}</span>{' '}
+                  {memberCount === 1 ? 'member' : 'members'}
+                </span>
+              ) : (
+                <span className="font-semibold text-red-600">Quota is full for this exhibitor</span>
+              )}
             </div>
+            {!hasAvailableSlots && (
+              <div className="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                No remaining quota is available from this onsite link, so new members cannot be added.
+              </div>
+            )}
             <Button
               onClick={handleContinueFromCount}
+              disabled={!hasAvailableSlots}
               className="h-12 w-full rounded-2xl bg-gradient-to-r from-emerald-700 to-teal-700 text-base font-semibold text-white shadow-lg shadow-emerald-800/20 transition-all hover:from-emerald-600 hover:to-teal-600 hover:shadow-xl"
             >
               Continue

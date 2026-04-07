@@ -5,11 +5,28 @@ import { AlertTriangle, Link2 } from 'lucide-react'
 type OnsitePageProps = {
   searchParams: Promise<{
     exhibitor_uuid?: string
+    quota?: string
+    used_quota?: string
+    total_quota?: string
+    remaining_quota?: string
   }>
 }
 
+function parseOptionalNumber(value?: string) {
+  if (!value) return undefined
+
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : undefined
+}
+
 export default async function OnsitePage({ searchParams }: OnsitePageProps) {
-  const { exhibitor_uuid: exhibitorUuid = '' } = await searchParams
+  const {
+    exhibitor_uuid: exhibitorUuid = '',
+    quota,
+    used_quota,
+    total_quota,
+    remaining_quota,
+  } = await searchParams
   const hasExhibitorUuid = exhibitorUuid.trim().length > 0
 
   return (
@@ -22,7 +39,13 @@ export default async function OnsitePage({ searchParams }: OnsitePageProps) {
       <div className="relative mx-auto flex w-full max-w-5xl flex-col justify-center min-h-[calc(100dvh-5rem)]">
         {hasExhibitorUuid ? (
           <div className="w-full animate-fade-in-up">
-            <PublicOnsiteWizard exhibitorUuid={exhibitorUuid} />
+            <PublicOnsiteWizard
+              exhibitorUuid={exhibitorUuid}
+              quota={parseOptionalNumber(quota)}
+              usedQuota={parseOptionalNumber(used_quota)}
+              totalQuota={parseOptionalNumber(total_quota)}
+              remainingQuota={parseOptionalNumber(remaining_quota)}
+            />
           </div>
         ) : (
           <Card className="w-full max-w-xl border-amber-200/70 bg-white/90 shadow-2xl shadow-slate-950/10 backdrop-blur">
