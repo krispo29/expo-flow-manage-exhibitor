@@ -179,8 +179,7 @@ export async function addExhibitorMember(data: {
   }
 }
 
-// POST /exhibitors/members (Public Onsite - Add Member)
-export async function addPublicOnsiteExhibitorMember(data: {
+export type PublicOnsiteExhibitorMemberPayload = {
   exhibitor_uuid: string
   title: string
   title_other: string
@@ -193,17 +192,41 @@ export async function addPublicOnsiteExhibitorMember(data: {
   company_name: string
   company_country: string
   company_tel: string
-}) {
+}
+
+function normalizePublicOnsiteMemberResponse(data: unknown) {
+  if (Array.isArray(data)) {
+    return data
+  }
+
+  return data == null ? [] : [data]
+}
+
+// POST /exhibitors/members (Public Onsite - Add Member)
+export async function addPublicOnsiteExhibitorMember(
+  data: PublicOnsiteExhibitorMemberPayload | PublicOnsiteExhibitorMemberPayload[]
+): Promise<
+  | {
+      success: true
+      data: unknown[]
+    }
+  | {
+      success: false
+      error: string
+    }
+> {
   try {
-    const response = await api.post('/exhibitors/members', data)
+    const payload = Array.isArray(data) ? data : [data]
+    const response = await api.post('/exhibitors/members', payload)
 
     return {
       success: true,
-      data: response.data.data,
+      data: normalizePublicOnsiteMemberResponse(response.data?.data ?? response.data),
     }
   } catch (error: any) {
     console.error('Error adding public onsite member:', error)
-    const errMsg = error.response?.data?.message || 'Failed to add member'
+    const errMsg =
+      error.response?.data?.message || error.response?.data?.error || 'Failed to add member'
     return { success: false, error: errMsg }
   }
 }

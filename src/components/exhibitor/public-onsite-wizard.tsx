@@ -1,7 +1,10 @@
 'use client'
 
 import { FormEvent, useMemo, useState } from 'react'
-import { addPublicOnsiteExhibitorMember } from '@/app/actions/exhibitor'
+import {
+  addPublicOnsiteExhibitorMember,
+  type PublicOnsiteExhibitorMemberPayload,
+} from '@/app/actions/exhibitor'
 
 import { CountrySelector } from '@/components/CountrySelector'
 import { Button } from '@/components/ui/button'
@@ -120,7 +123,6 @@ export function PublicOnsiteWizard({
   const [otherTitleStates, setOtherTitleStates] = useState<boolean[]>([false])
   const [customTitles, setCustomTitles] = useState<string[]>([''])
   const [results, setResults] = useState<RegisteredMemberResult[]>([])
-  const [submittingIndex, setSubmittingIndex] = useState(-1)
   const [consumedSlots, setConsumedSlots] = useState(0)
 
   const availableSlots = hasQuotaLimit
@@ -300,6 +302,10 @@ export function PublicOnsiteWizard({
   }
 
   function extractRegistrationCode(payload: unknown): string {
+    if (Array.isArray(payload)) {
+      return extractRegistrationCode(payload[0])
+    }
+
     if (typeof payload === 'string' && payload.trim().length > 0) {
       return payload.trim()
     }
@@ -328,69 +334,78 @@ export function PublicOnsiteWizard({
     }
 
     setStep('submitting')
-    const allResults: RegisteredMemberResult[] = []
+    const payload: PublicOnsiteExhibitorMemberPayload[] = members.map((member, index) => {
+      const isOther = otherTitleStates[index]
+      const finalTitle = isOther ? customTitles[index]?.trim() : member.title
 
-    for (let i = 0; i < members.length; i++) {
-      setSubmittingIndex(i)
-      const m = members[i]
-      const isOther = otherTitleStates[i]
-      const finalTitle = isOther ? customTitles[i]?.trim() : m.title
+      return {
+        exhibitor_uuid: exhibitorUuid,
+        title: finalTitle || member.title,
+        title_other: member.title_other.trim(),
+        first_name: member.first_name.trim(),
+        last_name: member.last_name.trim(),
+        job_position: member.job_position.trim(),
+        mobile_country_code: member.mobile_country_code.trim(),
+        mobile_number: member.mobile_number.trim(),
+        email: member.email.trim(),
+        company_name: member.company_name.trim(),
+        company_country: member.company_country,
+        company_tel: member.company_tel.trim(),
+      }
+    })
 
-      try {
-        const result = await addPublicOnsiteExhibitorMember({
-          exhibitor_uuid: exhibitorUuid,
-          title: finalTitle || m.title,
-          title_other: m.title_other.trim(),
-          first_name: m.first_name.trim(),
-          last_name: m.last_name.trim(),
-          job_position: m.job_position.trim(),
-          mobile_country_code: m.mobile_country_code.trim(),
-          mobile_number: m.mobile_number.trim(),
-          email: m.email.trim(),
-          company_name: m.company_name.trim(),
-          company_country: m.company_country,
-          company_tel: m.company_tel.trim(),
-        })
+    try {
+      const result = await addPublicOnsiteExhibitorMember(payload)
 
-        allResults.push({
-          index: i,
-          first_name: m.first_name.trim(),
-          last_name: m.last_name.trim(),
-          job_position: m.job_position.trim(),
-          company_name: m.company_name.trim(),
-          company_country: m.company_country,
-          registration_code: result.success ? extractRegistrationCode(result.data) : '',
+      const responseMembers: unknown[] = result.success ? result.data : []
+      const allResults: RegisteredMemberResult[] = members.map((member, index) => {
+        const matchedResponse = responseMembers[index] ?? (members.length === 1 ? responseMembers[0] : undefined)
+
+        return {
+          index,
+          first_name: member.first_name.trim(),
+          last_name: member.last_name.trim(),
+          job_position: member.job_position.trim(),
+          company_name: member.company_name.trim(),
+          company_country: member.company_country,
+          registration_code: result.success ? extractRegistrationCode(matchedResponse) : '',
           success: result.success === true,
           error: result.success ? undefined : (result.error || 'Unknown error'),
-        })
-      } catch {
-        allResults.push({
-          index: i,
-          first_name: m.first_name.trim(),
-          last_name: m.last_name.trim(),
-          job_position: m.job_position.trim(),
-          company_name: m.company_name.trim(),
-          company_country: m.company_country,
-          registration_code: '',
-          success: false,
-          error: 'Network error',
-        })
+        }
+      })
+
+      setResults(allResults)
+
+      const successCount = allResults.filter((r) => r.success).length
+      if (successCount > 0) {
+        setConsumedSlots((prev) => prev + successCount)
       }
-    }
 
-    setResults(allResults)
-    setSubmittingIndex(-1)
-    setStep('complete')
+      setStep('complete')
 
-    const successCount = allResults.filter((r) => r.success).length
-    if (successCount > 0) {
-      setConsumedSlots((prev) => prev + successCount)
-    }
+      if (!result.success) {
+        toast.error(result.error || 'Failed to register members')
+      } else if (successCount === allResults.length) {
+        toast.success(`All ${successCount} member(s) registered successfully!`)
+      } else {
+        toast.warning(`${successCount} of ${allResults.length} member(s) registered successfully`)
+      }
+    } catch {
+      const allResults: RegisteredMemberResult[] = members.map((member, index) => ({
+        index,
+        first_name: member.first_name.trim(),
+        last_name: member.last_name.trim(),
+        job_position: member.job_position.trim(),
+        company_name: member.company_name.trim(),
+        company_country: member.company_country,
+        registration_code: '',
+        success: false,
+        error: 'Network error',
+      }))
 
-    if (successCount === allResults.length) {
-      toast.success(`All ${successCount} member(s) registered successfully!`)
-    } else {
-      toast.warning(`${successCount} of ${allResults.length} member(s) registered successfully`)
+      setResults(allResults)
+      setStep('complete')
+      toast.error('Failed to register members')
     }
   }
 
@@ -403,7 +418,6 @@ export function PublicOnsiteWizard({
     setCustomTitles([''])
     setCurrentMemberIndex(0)
     setResults([])
-    setSubmittingIndex(-1)
   }
 
   function openAllBadgePreviews() {
@@ -921,27 +935,15 @@ export function PublicOnsiteWizard({
           <div className="space-y-2">
             <h2 className="text-2xl font-bold text-slate-900">Registering members...</h2>
             <p className="text-sm text-slate-500">
-              Submitting member {submittingIndex + 1} of {members.length}
+              Sending {members.length} {members.length === 1 ? 'member' : 'members'} in a
+              single request
             </p>
-          </div>
-          <div className="w-full max-w-xs">
-            <Progress
-              value={((submittingIndex + 1) / members.length) * 100}
-              className="h-2"
-              indicatorColor="bg-gradient-to-r from-emerald-500 to-teal-500"
-            />
           </div>
           <div className="mt-2 space-y-2">
             {members.map((m, i) => (
               <div key={i} className="flex items-center gap-3 text-sm">
-                {i < submittingIndex ? (
-                  <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                ) : i === submittingIndex ? (
-                  <Loader2 className="h-4 w-4 animate-spin text-emerald-500" />
-                ) : (
-                  <div className="h-4 w-4 rounded-full border-2 border-slate-200" />
-                )}
-                <span className={i <= submittingIndex ? 'text-slate-700' : 'text-slate-400'}>
+                <Loader2 className="h-4 w-4 animate-spin text-emerald-500" />
+                <span className="text-slate-700">
                   {m.first_name} {m.last_name}
                 </span>
               </div>
