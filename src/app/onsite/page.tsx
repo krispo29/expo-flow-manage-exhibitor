@@ -5,6 +5,7 @@ import { AlertTriangle, Link2 } from 'lucide-react'
 type OnsitePageProps = {
   searchParams: Promise<{
     exhibitor_uuid?: string
+    company_name?: string
     quota?: string
     used_quota?: string
     total_quota?: string
@@ -22,6 +23,7 @@ function parseOptionalNumber(value?: string) {
 export default async function OnsitePage({ searchParams }: OnsitePageProps) {
   const {
     exhibitor_uuid: exhibitorUuid = '',
+    company_name: companyName = '',
     quota,
     used_quota,
     total_quota,
@@ -41,6 +43,7 @@ export default async function OnsitePage({ searchParams }: OnsitePageProps) {
           <div className="w-full animate-fade-in-up">
             <PublicOnsiteWizard
               exhibitorUuid={exhibitorUuid}
+              companyName={companyName}
               quota={parseOptionalNumber(quota)}
               usedQuota={parseOptionalNumber(used_quota)}
               totalQuota={parseOptionalNumber(total_quota)}

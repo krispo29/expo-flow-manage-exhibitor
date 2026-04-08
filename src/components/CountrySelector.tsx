@@ -40,11 +40,9 @@ export function CountrySelector({
 
   const sortedCountries = useMemo(() => {
     return [...countries].sort((a, b) => {
-      // Prioritize Vietnam first, then Thailand
+      // Keep Vietnam first per requirement, then sort the rest alphabetically.
       if (a.code === 'VN') return -1;
       if (b.code === 'VN') return 1;
-      if (a.code === 'TH') return -1;
-      if (b.code === 'TH') return 1;
       
       const valA = a[displayProperty as keyof typeof a] as string;
       const valB = b[displayProperty as keyof typeof b] as string;

@@ -78,15 +78,23 @@ const EMPTY_MEMBER: MemberFormData = {
   title_other: '',
   job_position: '',
   email: '',
-  mobile_country_code: '66',
+  mobile_country_code: '',
   mobile_number: '',
   company_name: '',
   company_country: '',
   company_tel: '',
 }
 
+function createEmptyMember(companyName?: string): MemberFormData {
+  return {
+    ...EMPTY_MEMBER,
+    company_name: companyName?.trim() || '',
+  }
+}
+
 type PublicOnsiteWizardProps = {
   readonly exhibitorUuid: string
+  readonly companyName?: string
   readonly quota?: number
   readonly usedQuota?: number
   readonly totalQuota?: number
@@ -95,6 +103,7 @@ type PublicOnsiteWizardProps = {
 
 export function PublicOnsiteWizard({
   exhibitorUuid,
+  companyName,
   quota,
   usedQuota,
   totalQuota,
@@ -118,7 +127,7 @@ export function PublicOnsiteWizard({
     hasQuotaLimit ? Math.min(Math.max(initialAvailableSlots, 0), 1) : 1
   )
 
-  const [members, setMembers] = useState<MemberFormData[]>([EMPTY_MEMBER])
+  const [members, setMembers] = useState<MemberFormData[]>([createEmptyMember(companyName)])
   const [currentMemberIndex, setCurrentMemberIndex] = useState(0)
   const [otherTitleStates, setOtherTitleStates] = useState<boolean[]>([false])
   const [customTitles, setCustomTitles] = useState<string[]>([''])
@@ -128,14 +137,14 @@ export function PublicOnsiteWizard({
   const availableSlots = hasQuotaLimit
     ? Math.max(0, initialAvailableSlots - consumedSlots)
     : MAX_MEMBERS
-  const maxSelectableMembers = Math.min(MAX_MEMBERS, availableSlots)
+  const maxSelectableMembers = availableSlots
   const hasAvailableSlots = maxSelectableMembers > 0
 
   const currentMember = members[currentMemberIndex]
   const progressPercent = ((currentMemberIndex + 1) / memberCount) * 100
 
   function initializeMembers(count: number) {
-    setMembers(Array.from({ length: count }, () => ({ ...EMPTY_MEMBER })))
+    setMembers(Array.from({ length: count }, () => createEmptyMember(companyName)))
     setOtherTitleStates(Array.from({ length: count }, () => false))
     setCustomTitles(Array.from({ length: count }, () => ''))
     setCurrentMemberIndex(0)
@@ -246,6 +255,10 @@ export function PublicOnsiteWizard({
     }
     if (!m.email.trim()) {
       toast.error('Please enter an email')
+      return false
+    }
+    if (!m.mobile_country_code.trim()) {
+      toast.error('Please select a mobile country code')
       return false
     }
     if (!m.mobile_number.trim()) {
@@ -413,7 +426,7 @@ export function PublicOnsiteWizard({
     setStep('select-count')
     setMemberCount(hasQuotaLimit ? Math.min(Math.max(availableSlots, 0), 1) : 1)
 
-    setMembers([{ ...EMPTY_MEMBER }])
+    setMembers([createEmptyMember(companyName)])
     setOtherTitleStates([false])
     setCustomTitles([''])
     setCurrentMemberIndex(0)
@@ -454,16 +467,7 @@ export function PublicOnsiteWizard({
         <div className="h-1.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500" />
         <CardContent className="p-6 sm:p-10">
           <div className="mb-10 text-center">
-            <div className="mx-auto mb-5 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">
-              <BadgePlus className="h-3.5 w-3.5" />
-              Public Onsite
-            </div>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
-              How many members?
-            </h1>
-            <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-500">
-              Select the number of exhibitor team members you&apos;d like to register for onsite access.
-            </p>
+        
             {hasQuotaLimit && (
               <div className="mx-auto mt-4 inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-xs font-semibold text-amber-800">
                 <Users className="h-3.5 w-3.5" />
@@ -721,20 +725,21 @@ export function PublicOnsiteWizard({
                   Mobile Number <span className="text-red-500">*</span>
                 </Label>
                 <div className="flex flex-col gap-3 sm:flex-row sm:gap-2">
-                  <div className="w-full sm:w-[180px] sm:shrink-0">
-                    <CountrySelector
-                      value={selectedPhoneCountry}
-                      onChange={(countryCode) => {
-                        const country = countries.find((item) => item.code === countryCode)
-                        if (!country) return
-                        updateCurrentMember(
-                          'mobile_country_code',
-                          country.phoneCode.replace('+', '')
-                        )
-                      }}
-                      displayProperty="phoneCode"
-                    />
-                  </div>
+                    <div className="w-full sm:w-[180px] sm:shrink-0">
+                      <CountrySelector
+                        value={selectedPhoneCountry}
+                        onChange={(countryCode) => {
+                          const country = countries.find((item) => item.code === countryCode)
+                          if (!country) return
+                          updateCurrentMember(
+                            'mobile_country_code',
+                            country.phoneCode.replace('+', '')
+                          )
+                        }}
+                        placeholder="Select code"
+                        displayProperty="phoneCode"
+                      />
+                    </div>
                   <Input
                     value={currentMember.mobile_number}
                     onChange={(e) => updateCurrentMember('mobile_number', e.target.value)}
