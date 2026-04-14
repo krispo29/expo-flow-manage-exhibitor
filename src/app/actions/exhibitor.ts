@@ -4,6 +4,7 @@ import { cookies } from 'next/headers'
 import api from '@/lib/api'
 import { isTokenExpiredError } from '@/lib/auth-helpers'
 import { AUTH_COOKIE_NAMES, hasPortalSession } from '@/lib/auth-session'
+import { getCountryName } from '@/lib/countries'
 
 type PortalAuthHeaders = {
   'X-Project-UUID': string
@@ -162,7 +163,8 @@ export async function addExhibitorMember(data: {
       return { success: false, error: 'key incorrect' }
     }
 
-    const response = await api.post('/v1/exhibitor/members', data, { headers })
+    const payload = normalizeMemberCompanyCountry(data)
+    const response = await api.post('/v1/exhibitor/members', payload, { headers })
     
     return { 
       success: true, 
@@ -202,6 +204,15 @@ function normalizePublicOnsiteMemberResponse(data: unknown) {
   return data == null ? [] : [data]
 }
 
+function normalizeMemberCompanyCountry<T extends { company_country: string }>(data: T): T {
+  const companyCountry = data.company_country.trim()
+
+  return {
+    ...data,
+    company_country: companyCountry ? getCountryName(companyCountry) : companyCountry,
+  }
+}
+
 // POST /exhibitors/members (Public Onsite - Add Member)
 export async function addPublicOnsiteExhibitorMember(
   data: PublicOnsiteExhibitorMemberPayload | PublicOnsiteExhibitorMemberPayload[]
@@ -216,7 +227,7 @@ export async function addPublicOnsiteExhibitorMember(
     }
 > {
   try {
-    const payload = Array.isArray(data) ? data : [data]
+    const payload = (Array.isArray(data) ? data : [data]).map(normalizeMemberCompanyCountry)
     const response = await api.post('/exhibitors/members', payload)
 
     return {
@@ -254,7 +265,8 @@ export async function updateExhibitorMember(data: {
       return { success: false, error: 'key incorrect' }
     }
 
-    const response = await api.put('/v1/exhibitor/members/', data, { headers })
+    const payload = normalizeMemberCompanyCountry(data)
+    const response = await api.put('/v1/exhibitor/members/', payload, { headers })
     
     return { 
       success: true, 

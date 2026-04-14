@@ -250,3 +250,29 @@ export const countries: Country[] = [
   { code: 'RE', name: 'Reunion', phoneCode: '+262', flag: '🇷🇪', nationality: 'Réunionnais' },
 ];
 export const getCountryByCode = (code: string) => countries.find(c => c.code === code);
+
+function normalizeCountryValue(value: string) {
+  return value.trim().toLowerCase()
+}
+
+export function getCountryByValue(value: string) {
+  const normalizedValue = normalizeCountryValue(value)
+
+  if (!normalizedValue) {
+    return undefined
+  }
+
+  return countries.find(
+    (country) =>
+      normalizeCountryValue(country.code) === normalizedValue ||
+      normalizeCountryValue(country.name) === normalizedValue
+  )
+}
+
+export function getCountryCode(value: string) {
+  return getCountryByValue(value)?.code
+}
+
+export function getCountryName(value: string) {
+  return getCountryByValue(value)?.name || value
+}

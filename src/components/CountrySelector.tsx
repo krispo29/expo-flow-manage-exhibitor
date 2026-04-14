@@ -17,7 +17,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Label } from "@/components/ui/label";
-import { countries } from "@/lib/countries"; 
+import { countries, getCountryByValue } from "@/lib/countries";
 
 interface CountrySelectorProps {
   value: string;
@@ -50,7 +50,8 @@ export function CountrySelector({
     });
   }, [displayProperty]);
 
-  const selectedCountry = countries.find((c) => c.code === value);
+  const selectedCountry = getCountryByValue(value);
+  const selectedCountryCode = selectedCountry?.code || "";
 
   return (
     <div className="space-y-2">
@@ -101,7 +102,7 @@ export function CountrySelector({
                       />
                       <span>{country[displayProperty]}</span>
                     </span>
-                    {value === country.code && <Check className="ml-auto h-4 w-4" />}
+                    {selectedCountryCode === country.code && <Check className="ml-auto h-4 w-4" />}
                   </CommandItem>
                 ))}
               </CommandGroup>
