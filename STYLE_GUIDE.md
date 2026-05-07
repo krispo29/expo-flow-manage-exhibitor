@@ -931,7 +931,7 @@ bg-card/30 backdrop-blur-xl border border-border/50
   {/* Footer / QR */}
   <div className="w-full bg-slate-50 px-6 py-8 flex flex-col items-center gap-6 border-t border-slate-100 print:bg-slate-50">
     <div className="bg-white p-3 rounded-2xl shadow-sm border border-slate-200 print:shadow-none">
-      <QRCodeSVG value={staff.member_uuid} size={110} level="H" />
+      <QRCodeSVG value={staff.registration_uuid} size={110} level="H" />
     </div>
 
     <div className="flex items-center gap-6 w-full justify-center">
