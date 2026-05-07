@@ -11,7 +11,7 @@ import { countries } from '@/lib/countries'
 import { toast } from 'sonner'
 
 interface ExhibitorMember {
-  member_uuid: string
+  registration_uuid: string
   registration_code: string
   title: string
   title_other: string
@@ -37,7 +37,7 @@ export default function PrintBadgePage() {
   const params = useParams()
   const router = useRouter()
   const { user } = useAuthStore()
-  const staffId = params.id as string
+  const registrationUuid = params.id as string
 
   const [exhibitorInfo, setExhibitorInfo] = useState<ExhibitorInfo | null>(null)
   const [staff, setStaff] = useState<ExhibitorMember | null>(null)
@@ -56,7 +56,7 @@ export default function PrintBadgePage() {
           booth_no: result.data.info.booth_no,
         })
           const foundStaff = (result.data.members || []).find(
-            (m: ExhibitorMember) => m.member_uuid === staffId
+            (m: ExhibitorMember) => m.registration_uuid === registrationUuid
           )
           setStaff(foundStaff || null)
         } else if (result.error === 'key incorrect') {
@@ -68,7 +68,7 @@ export default function PrintBadgePage() {
         setLoading(false)
       }
     fetchData()
-  }, [user, staffId])
+  }, [user, registrationUuid])
 
   if (loading) {
     return (

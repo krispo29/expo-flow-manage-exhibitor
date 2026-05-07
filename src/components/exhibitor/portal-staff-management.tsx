@@ -57,7 +57,7 @@ interface ExhibitorInfo {
 }
 
 interface ExhibitorMember {
-  member_uuid: string
+  registration_uuid: string
   registration_code: string
   title: string
   title_other: string
@@ -219,7 +219,7 @@ export function PortalStaffManagement({
     if (editingMember) {
       result = await updateExhibitorMember({
         ...payload,
-        member_uuid: editingMember.member_uuid
+        registration_uuid: editingMember.registration_uuid
       })
     } else {
       result = await addExhibitorMember(payload)
@@ -248,7 +248,7 @@ export function PortalStaffManagement({
     if (!resendEmailMember) return
     setResendingEmail(true)
     const result = await resendMemberEmailConfirmation({
-      member_uuid: resendEmailMember.member_uuid,
+      registration_uuid: resendEmailMember.registration_uuid,
       email: resendEmailValue
     })
     setResendingEmail(false)
@@ -372,7 +372,7 @@ export function PortalStaffManagement({
             </TableHeader>
             <TableBody>
               {memberList.map((member) => (
-                <TableRow key={member.member_uuid}>
+                <TableRow key={member.registration_uuid}>
                   <TableCell className="font-mono text-sm">{member.registration_code}</TableCell>
                   <TableCell>{member.title}</TableCell>
                   <TableCell className="font-medium">{member.first_name} {member.last_name}</TableCell>

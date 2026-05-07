@@ -245,7 +245,7 @@ export async function addPublicOnsiteExhibitorMember(
 // PUT /v1/exhibitors/members/ (Portal - Update Member)
 export async function updateExhibitorMember(data: {
   exhibitor_uuid: string
-  member_uuid: string
+  registration_uuid: string
   title: string
   title_other: string
   first_name: string
@@ -284,7 +284,7 @@ export async function updateExhibitorMember(data: {
 }
 
 // PATCH /v1/exhibitor/members/toggle_status (Portal - Toggle Member Status)
-export async function toggleExhibitorMemberStatus(memberUuid: string) {
+export async function toggleExhibitorMemberStatus(registrationUuid: string) {
   try {
     const headers = await getPortalAuthHeaders()
 
@@ -293,7 +293,7 @@ export async function toggleExhibitorMemberStatus(memberUuid: string) {
     }
 
     const response = await api.patch('/v1/exhibitor/members/toggle_status', {
-      member_uuid: memberUuid
+      registration_uuid: registrationUuid
     }, { headers })
     
     return { 
@@ -312,7 +312,7 @@ export async function toggleExhibitorMemberStatus(memberUuid: string) {
 }
 
 // POST /v1/exhibitors/members/resend_email_comfirmation (Portal - Resend Email Confirmation)
-export async function resendMemberEmailConfirmation(data: { member_uuid: string, email: string }) {
+export async function resendMemberEmailConfirmation(data: { registration_uuid: string, email: string }) {
   try {
     const headers = await getPortalAuthHeaders()
 
@@ -322,7 +322,7 @@ export async function resendMemberEmailConfirmation(data: { member_uuid: string,
 
     const response = await api.post('/v1/exhibitor/members/resend_email_comfirmation', [
       {
-        member_uuid: data.member_uuid,
+        registration_uuid: data.registration_uuid,
         email: data.email
       }
     ], { headers })

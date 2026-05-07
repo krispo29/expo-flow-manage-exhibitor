@@ -42,7 +42,7 @@ interface ExhibitorInfo {
 }
 
 interface ExhibitorMember {
-  member_uuid: string
+  registration_uuid: string
   registration_code: string
   title: string
   title_other: string

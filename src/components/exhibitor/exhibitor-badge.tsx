@@ -4,7 +4,7 @@ import React from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 
 interface BadgeMember {
-  readonly member_uuid: string
+  readonly registration_uuid: string
   readonly registration_code: string
   readonly title: string
   readonly first_name: string
@@ -72,7 +72,7 @@ export function ExhibitorBadge({ staff, exhibitor }: ExhibitorBadgeProps) {
       <div className="w-full bg-slate-50 px-6 py-8 flex flex-col items-center gap-6 border-t border-slate-100">
         <div className="bg-white p-3 rounded-2xl shadow-sm border border-slate-200">
           <QRCodeSVG 
-            value={staff.member_uuid} 
+            value={staff.registration_uuid} 
             size={110} 
             level="H"
           />
