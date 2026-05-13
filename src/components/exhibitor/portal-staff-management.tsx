@@ -326,14 +326,16 @@ export function PortalStaffManagement({
               )}
             </div>
           </div>
-          <Button 
-            onClick={() => handleOpenDialog()} 
-            size="sm" 
-            disabled={isPastCutoff || isQuotaFull}
-            className="rounded-lg gap-1.5 text-xs h-8 shrink-0 self-start mt-1"
-          >
-            <Plus className="h-3.5 w-3.5" /> Add Staff
-          </Button>
+          {!isPastCutoff && (
+            <Button 
+              onClick={() => handleOpenDialog()} 
+              size="sm" 
+              disabled={isQuotaFull}
+              className="rounded-lg gap-1.5 text-xs h-8 shrink-0 self-start mt-1"
+            >
+              <Plus className="h-3.5 w-3.5" /> Add Staff
+            </Button>
+          )}
         </CardHeader>
         <CardContent>
         {isPastCutoff && (
@@ -397,15 +399,16 @@ export function PortalStaffManagement({
                       >
                         <Mail className="h-4 w-4 text-purple-500" />
                       </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        onClick={() => handleOpenDialog(member)}
-                        disabled={isPastCutoff}
-                        title="Edit"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
+                      {!isPastCutoff && (
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => handleOpenDialog(member)}
+                          title="Edit"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      )}
 
                     </div>
                   </TableCell>
