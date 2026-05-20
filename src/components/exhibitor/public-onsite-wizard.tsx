@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { countries } from '@/lib/countries'
-import { openBadgePreviewWindow } from '@/lib/badge-template'
+import { normalizeRegistrationCode, openBadgePreviewWindow } from '@/lib/badge-template'
 import {
   ArrowLeft,
   ArrowRight,
@@ -320,23 +320,23 @@ export function PublicOnsiteWizard({
     }
 
     if (typeof payload === 'string' && payload.trim().length > 0) {
-      return payload.trim()
+      return normalizeRegistrationCode(payload)
     }
     if (!payload || typeof payload !== 'object') return ''
     const record = payload as Record<string, unknown>
     const directCode = [record.registration_code, record.code, record.registrationCode].find(
       (v): v is string => typeof v === 'string' && v.trim().length > 0
     )
-    if (directCode) return directCode
+    if (directCode) return normalizeRegistrationCode(directCode)
     const nested = [record.member, record.data, record.result].find(
       (v): v is Record<string, unknown> => Boolean(v) && typeof v === 'object'
     )
     if (!nested) return ''
-    return (
-      [nested.registration_code, nested.code, nested.registrationCode].find(
-        (v): v is string => typeof v === 'string' && v.trim().length > 0
-      ) || ''
+    const nestedCode = [nested.registration_code, nested.code, nested.registrationCode].find(
+      (v): v is string => typeof v === 'string' && v.trim().length > 0
     )
+
+    return nestedCode ? normalizeRegistrationCode(nestedCode) : ''
   }
 
   async function handleSubmitAll() {

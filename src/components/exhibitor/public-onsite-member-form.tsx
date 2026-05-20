@@ -16,7 +16,11 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { countries } from '@/lib/countries'
-import { openBadgePreviewWindow, openBadgePrintWindow } from '@/lib/badge-template'
+import {
+  normalizeRegistrationCode,
+  openBadgePreviewWindow,
+  openBadgePrintWindow,
+} from '@/lib/badge-template'
 import { ArrowRight, BadgePlus, CheckCircle2, ExternalLink, Loader2, Printer } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -107,7 +111,7 @@ export function PublicOnsiteMemberForm({ exhibitorUuid }: PublicOnsiteMemberForm
     }
 
     if (typeof payload === 'string' && payload.trim().length > 0) {
-      return payload.trim()
+      return normalizeRegistrationCode(payload)
     }
 
     if (!payload || typeof payload !== 'object') {
@@ -120,7 +124,7 @@ export function PublicOnsiteMemberForm({ exhibitorUuid }: PublicOnsiteMemberForm
     )
 
     if (directCode) {
-      return directCode
+      return normalizeRegistrationCode(directCode)
     }
 
     const nestedRecord = [record.member, record.data, record.result].find(
@@ -131,9 +135,11 @@ export function PublicOnsiteMemberForm({ exhibitorUuid }: PublicOnsiteMemberForm
       return ''
     }
 
-    return [nestedRecord.registration_code, nestedRecord.code, nestedRecord.registrationCode].find(
+    const nestedCode = [nestedRecord.registration_code, nestedRecord.code, nestedRecord.registrationCode].find(
       (value): value is string => typeof value === 'string' && value.trim().length > 0
-    ) || ''
+    )
+
+    return nestedCode ? normalizeRegistrationCode(nestedCode) : ''
   }
 
   function openRegisteredBadgePreview() {

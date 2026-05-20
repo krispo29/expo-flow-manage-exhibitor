@@ -1,14 +1,21 @@
 'use server'
 
+import type { AxiosError } from 'axios'
 import { cookies } from 'next/headers'
 import api from '@/lib/api'
 import { isTokenExpiredError } from '@/lib/auth-helpers'
 import { AUTH_COOKIE_NAMES, hasPortalSession } from '@/lib/auth-session'
 import { getCountryName } from '@/lib/countries'
+import { normalizeRegistrationCode } from '@/lib/registration-code'
 
 type PortalAuthHeaders = {
   'X-Project-UUID': string
   Authorization: string
+}
+
+type ApiErrorData = {
+  message?: string
+  error?: string
 }
 
 async function clearAuthCookies() {
@@ -17,6 +24,20 @@ async function clearAuthCookies() {
   for (const cookieName of AUTH_COOKIE_NAMES) {
     cookieStore.delete(cookieName)
   }
+}
+
+function getApiError(error: unknown): AxiosError<ApiErrorData> {
+  return error as AxiosError<ApiErrorData>
+}
+
+function getApiErrorMessage(error: unknown, fallback: string): string {
+  const data = getApiError(error).response?.data
+
+  return data?.message || data?.error || fallback
+}
+
+function isAuthExpired(error: unknown): boolean {
+  return isTokenExpiredError(getApiError(error))
 }
 
 // Helper function to get headers with auth (uses cookie-based project_uuid)
@@ -49,7 +70,9 @@ export async function getExhibitorProfile() {
     
     // Calculate is_quota_full
     const info = response.data.data.info
-    const members = response.data.data.members || []
+    const members = Array.isArray(response.data.data.members)
+      ? response.data.data.members.map(normalizeRegistrationCodeRecord)
+      : []
     const totalQuota = (info.quota || 0) + (info.over_quota || 0)
     const isQuotaFull = members.length >= totalQuota
     
@@ -60,16 +83,17 @@ export async function getExhibitorProfile() {
         info: {
           ...info,
           is_quota_full: isQuotaFull
-        }
+        },
+        members,
       }
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching exhibitor profile:', error)
-    if (isTokenExpiredError(error)) {
+    if (isAuthExpired(error)) {
       await clearAuthCookies()
       return { success: false, error: 'key incorrect' }
     }
-    const errMsg = error.response?.data?.message || 'Failed to fetch profile'
+    const errMsg = getApiErrorMessage(error, 'Failed to fetch profile')
     return { success: false, error: errMsg }
   }
 }
@@ -104,13 +128,13 @@ export async function updateExhibitorProfile(data: {
       success: true, 
       data: response.data.data
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error updating exhibitor profile:', error)
-    if (isTokenExpiredError(error)) {
+    if (isAuthExpired(error)) {
       await clearAuthCookies()
       return { success: false, error: 'key incorrect' }
     }
-    const errMsg = error.response?.data?.message || 'Failed to update profile'
+    const errMsg = getApiErrorMessage(error, 'Failed to update profile')
     return { success: false, error: errMsg }
   }
 }
@@ -130,13 +154,13 @@ export async function getExhibitorCutoffStatus() {
       success: true, 
       data: response.data.data
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching cutoff status:', error)
-    if (isTokenExpiredError(error)) {
+    if (isAuthExpired(error)) {
       await clearAuthCookies()
       return { success: false, error: 'key incorrect' }
     }
-    const errMsg = error.response?.data?.message || 'Failed to fetch cutoff status'
+    const errMsg = getApiErrorMessage(error, 'Failed to fetch cutoff status')
     return { success: false, error: errMsg }
   }
 }
@@ -168,15 +192,15 @@ export async function addExhibitorMember(data: {
     
     return { 
       success: true, 
-      data: response.data.data
+      data: normalizeRegistrationCodeRecord(response.data.data)
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error adding member:', error)
-    if (isTokenExpiredError(error)) {
+    if (isAuthExpired(error)) {
       await clearAuthCookies()
       return { success: false, error: 'key incorrect' }
     }
-    const errMsg = error.response?.data?.message || 'Failed to add member'
+    const errMsg = getApiErrorMessage(error, 'Failed to add member')
     return { success: false, error: errMsg }
   }
 }
@@ -197,11 +221,26 @@ export type PublicOnsiteExhibitorMemberPayload = {
 }
 
 function normalizePublicOnsiteMemberResponse(data: unknown) {
-  if (Array.isArray(data)) {
-    return data
+  const records = Array.isArray(data) ? data : data == null ? [] : [data]
+
+  return records.map(normalizeRegistrationCodeRecord)
+}
+
+function normalizeRegistrationCodeRecord<T>(value: T): T {
+  if (!value || typeof value !== 'object') {
+    return value
   }
 
-  return data == null ? [] : [data]
+  const record = value as Record<string, unknown>
+
+  if (typeof record.registration_code !== 'string') {
+    return value
+  }
+
+  return {
+    ...record,
+    registration_code: normalizeRegistrationCode(record.registration_code),
+  } as T
 }
 
 function normalizeMemberCompanyCountry<T extends { company_country: string }>(data: T): T {
@@ -234,10 +273,9 @@ export async function addPublicOnsiteExhibitorMember(
       success: true,
       data: normalizePublicOnsiteMemberResponse(response.data?.data ?? response.data),
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error adding public onsite member:', error)
-    const errMsg =
-      error.response?.data?.message || error.response?.data?.error || 'Failed to add member'
+    const errMsg = getApiErrorMessage(error, 'Failed to add member')
     return { success: false, error: errMsg }
   }
 }
@@ -270,15 +308,15 @@ export async function updateExhibitorMember(data: {
     
     return { 
       success: true, 
-      data: response.data.data
+      data: normalizeRegistrationCodeRecord(response.data.data)
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error updating member:', error)
-    if (isTokenExpiredError(error)) {
+    if (isAuthExpired(error)) {
       await clearAuthCookies()
       return { success: false, error: 'key incorrect' }
     }
-    const errMsg = error.response?.data?.message || 'Failed to update member'
+    const errMsg = getApiErrorMessage(error, 'Failed to update member')
     return { success: false, error: errMsg }
   }
 }
@@ -298,15 +336,15 @@ export async function toggleExhibitorMemberStatus(registrationUuid: string) {
     
     return { 
       success: true, 
-      data: response.data.data
+      data: normalizeRegistrationCodeRecord(response.data.data)
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error toggling member status:', error)
-    if (isTokenExpiredError(error)) {
+    if (isAuthExpired(error)) {
       await clearAuthCookies()
       return { success: false, error: 'key incorrect' }
     }
-    const errMsg = error.response?.data?.message || 'Failed to toggle member status'
+    const errMsg = getApiErrorMessage(error, 'Failed to toggle member status')
     return { success: false, error: errMsg }
   }
 }
@@ -331,13 +369,13 @@ export async function resendMemberEmailConfirmation(data: { registration_uuid: s
       success: true, 
       data: response.data.data
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error resending email confirmation:', error)
-    if (isTokenExpiredError(error)) {
+    if (isAuthExpired(error)) {
       await clearAuthCookies()
       return { success: false, error: 'key incorrect' }
     }
-    const errMsg = error.response?.data?.message || 'Failed to resend email confirmation'
+    const errMsg = getApiErrorMessage(error, 'Failed to resend email confirmation')
     return { success: false, error: errMsg }
   }
 }

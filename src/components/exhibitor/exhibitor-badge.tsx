@@ -1,7 +1,8 @@
 'use client'
 
-import React from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
+import { BADGE_TEMPLATE, normalizeRegistrationCode } from '@/lib/badge-template'
 
 interface BadgeMember {
   readonly registration_uuid: string
@@ -23,117 +24,298 @@ interface ExhibitorBadgeProps {
   readonly exhibitor: BadgeExhibitor
 }
 
+const POINTS_PER_PIXEL = 72 / 96
+
+function calculateFitFontSizePt(element: HTMLElement) {
+  const availableWidth = element.clientWidth
+  const requiredWidth = element.scrollWidth
+  const currentFontSizePx = Number.parseFloat(window.getComputedStyle(element).fontSize)
+  const currentFontSizePt = currentFontSizePx * POINTS_PER_PIXEL
+
+  if (availableWidth <= 0 || requiredWidth <= 0 || currentFontSizePt <= 0) {
+    return BADGE_TEMPLATE.nameMaxFontSizePt
+  }
+
+  const nextFontSize =
+    requiredWidth === availableWidth
+      ? currentFontSizePt
+      : currentFontSizePt * (availableWidth / requiredWidth)
+
+  return Math.max(
+    BADGE_TEMPLATE.nameMinFontSizePt,
+    Math.min(BADGE_TEMPLATE.nameMaxFontSizePt, nextFontSize)
+  )
+}
+
 export function ExhibitorBadge({ staff, exhibitor }: ExhibitorBadgeProps) {
+  const nameRef = useRef<HTMLDivElement>(null)
+  const fullName = [staff.first_name, staff.last_name].filter(Boolean).join(' ').trim()
+  const registrationCode = normalizeRegistrationCode(staff.registration_code)
+  const [nameFontSizePt, setNameFontSizePt] = useState<number>(BADGE_TEMPLATE.nameMaxFontSizePt)
+
+  useLayoutEffect(() => {
+    const nameElement = nameRef.current
+    if (!nameElement) {
+      return
+    }
+
+    let frameId = 0
+
+    const fitName = () => {
+      const nextFontSizePt = calculateFitFontSizePt(nameElement)
+
+      setNameFontSizePt((currentFontSizePt) =>
+        Math.abs(currentFontSizePt - nextFontSizePt) < 0.05
+          ? currentFontSizePt
+          : nextFontSizePt
+      )
+    }
+
+    const scheduleFit = () => {
+      window.cancelAnimationFrame(frameId)
+      frameId = window.requestAnimationFrame(fitName)
+    }
+
+    const resizeObserver = new ResizeObserver(scheduleFit)
+    resizeObserver.observe(nameElement)
+
+    if (nameElement.parentElement) {
+      resizeObserver.observe(nameElement.parentElement)
+    }
+
+    scheduleFit()
+    window.addEventListener('resize', scheduleFit)
+
+    return () => {
+      window.cancelAnimationFrame(frameId)
+      resizeObserver.disconnect()
+      window.removeEventListener('resize', scheduleFit)
+    }
+  }, [fullName])
+
   return (
-    <div className="print-badge w-[4in] h-[6in] bg-white flex flex-col items-center text-center mx-auto mb-8 break-after-page relative overflow-hidden shadow-lg border border-gray-100 print:shadow-none print:border-none">
-      {/* Category Header Bar */}
-      <div className="w-full bg-emerald-600 h-16 flex items-center justify-center">
-        <span className="text-white text-3xl font-black uppercase tracking-[0.3em] leading-none">
-          EXHIBITOR
-        </span>
-      </div>
+    <section className="badge-print-page mx-auto mb-8 bg-white shadow-lg print:shadow-none">
+      <div className="badge-print-container">
+        <div className="badge-print-header-spacer" />
 
-      {/* Event Header */}
-      <div className="w-full pt-8 px-6">
-        <div className="text-sm font-bold uppercase tracking-[0.2em] text-emerald-700/60 mb-1">
-          Expo Flow Management
-        </div>
-        <div className="h-[2px] w-12 bg-emerald-600 mx-auto opacity-30"></div>
-        <div className="text-xs font-medium text-slate-400 mt-2 uppercase tracking-widest">
-          Bangkok 2026
-        </div>
-      </div>
+        <div className="badge-print-content">
+          <div className="badge-print-top-group">
+            <div className="badge-print-name-section">
+              <div
+                className="badge-print-name"
+                ref={nameRef}
+                style={{ fontSize: `${nameFontSizePt}pt` }}
+              >
+                {fullName}
+              </div>
+              <div className="badge-print-position">{staff.job_position || 'Staff'}</div>
+            </div>
 
-      {/* Staff Identity Section */}
-      <div className="w-full flex-1 flex flex-col justify-center px-6 py-4">
-        <div className="space-y-1">
-          <h1 className="text-4xl font-black text-slate-900 leading-[1.1] mb-2 px-2 break-words">
-            {staff.title} {staff.first_name}<br />
-            {staff.last_name}
-          </h1>
-          <div className="inline-block px-4 py-1 bg-slate-100 rounded-full">
-            <h2 className="text-lg text-slate-600 font-bold uppercase tracking-wide">
-              {staff.job_position || 'Staff'}
-            </h2>
+            <div className="badge-print-info-section">
+              <div className="badge-print-company">{exhibitor.company_name}</div>
+              <div className="badge-print-country">{exhibitor.country}</div>
+            </div>
+          </div>
+
+          <div className="badge-print-qr-section">
+            <div className="badge-print-qr-frame">
+              {registrationCode ? (
+                <QRCodeSVG
+                  value={registrationCode}
+                  level="M"
+                  size={BADGE_TEMPLATE.qrCanvasSize}
+                  style={{ height: '100%', width: '100%' }}
+                  viewBox="0 0 256 256"
+                />
+              ) : null}
+            </div>
           </div>
         </div>
 
-        <div className="mt-8 space-y-1 bg-slate-50/50 py-4 px-4 rounded-xl border border-slate-100/50">
-          <h3 className="text-xl text-emerald-800 font-black uppercase tracking-tight leading-tight">
-            {exhibitor.company_name}
-          </h3>
-          <p className="text-sm text-slate-500 font-bold uppercase tracking-widest">
-            {exhibitor.country}
-          </p>
-        </div>
-      </div>
-
-      {/* Footer / QR Section */}
-      <div className="w-full bg-slate-50 px-6 py-8 flex flex-col items-center gap-6 border-t border-slate-100">
-        <div className="bg-white p-3 rounded-2xl shadow-sm border border-slate-200">
-          <QRCodeSVG 
-            value={staff.registration_uuid} 
-            size={110} 
-            level="H"
-          />
-        </div>
-        
-        <div className="flex items-center gap-6 w-full justify-center">
-          <div className="text-left">
-            <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Booth No.</div>
-            <div className="text-xl font-black text-emerald-600 tracking-tighter">{exhibitor.booth_no}</div>
-          </div>
-          <div className="h-8 w-[1px] bg-slate-200"></div>
-          <div className="text-right">
-            <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Badge ID</div>
-            <div className="text-sm font-mono font-bold text-slate-700">{staff.registration_code}</div>
-          </div>
+        <div className="badge-print-footer">
+          <div className="badge-print-type">EXHIBITOR</div>
         </div>
       </div>
 
       <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap');
-        
-        .print-badge {
-          font-family: 'Outfit', sans-serif !important;
-          -webkit-print-color-adjust: exact;
-          print-color-adjust: exact;
+        @page {
+          size: ${BADGE_TEMPLATE.pageSize};
+          margin: 0;
         }
 
         @media print {
-          @page {
-            size: 4in 6in;
-            margin: 0;
-          }
+          html,
           body {
-            print-color-adjust: exact;
-            -webkit-print-color-adjust: exact;
+            width: auto;
+            height: auto;
             margin: 0;
             padding: 0;
+            background: #fff;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
           }
-          .print-badge {
-            box-shadow: none !important;
-            border: none !important;
-            width: 4in !important;
-            height: 6in !important;
-            margin: 0 !important;
-            position: absolute;
-            top: 0;
-            left: 0;
-            break-after: page;
-          }
+
           body > *:not(.print-area) {
             display: none !important;
           }
+
           .print-area {
             display: block !important;
+            width: auto !important;
+            height: auto !important;
             margin: 0 !important;
             padding: 0 !important;
-            width: 4in !important;
-            height: 6in !important;
+          }
+
+          .badge-print-page {
+            display: block !important;
+            width: ${BADGE_TEMPLATE.width} !important;
+            height: ${BADGE_TEMPLATE.height} !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: hidden !important;
+            page-break-after: always;
+            page-break-inside: avoid;
+            break-after: page;
+            break-inside: avoid;
+          }
+
+          .badge-print-page:last-of-type {
+            page-break-after: auto;
+            break-after: auto;
           }
         }
       `}</style>
-    </div>
+
+      <style jsx>{`
+        .badge-print-page {
+          width: ${BADGE_TEMPLATE.width};
+          height: ${BADGE_TEMPLATE.height};
+          overflow: hidden;
+          color: #000;
+          text-align: center;
+        }
+
+        .badge-print-container {
+          position: relative;
+          display: flex;
+          width: ${BADGE_TEMPLATE.width};
+          height: ${BADGE_TEMPLATE.height};
+          flex-direction: column;
+          overflow: hidden;
+          background: #fff;
+        }
+
+        .badge-print-header-spacer {
+          width: 100%;
+          height: ${BADGE_TEMPLATE.headerSpacerHeight};
+        }
+
+        .badge-print-content {
+          display: flex;
+          width: 100%;
+          height: ${BADGE_TEMPLATE.contentAreaHeight};
+          flex-direction: column;
+          align-items: center;
+          justify-content: space-between;
+          box-sizing: border-box;
+          padding: ${BADGE_TEMPLATE.contentPadding};
+          text-align: center;
+        }
+
+        .badge-print-top-group {
+          display: flex;
+          width: 100%;
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .badge-print-name-section {
+          margin-bottom: 5px;
+        }
+
+        .badge-print-name {
+          width: 100%;
+          max-width: ${BADGE_TEMPLATE.nameMaxWidth};
+          overflow: hidden;
+          color: #000;
+          font-size: ${BADGE_TEMPLATE.nameFontSize};
+          font-weight: 700;
+          line-height: 1;
+          text-overflow: clip;
+          text-transform: uppercase;
+          white-space: nowrap;
+        }
+
+        .badge-print-position {
+          margin-top: ${BADGE_TEMPLATE.positionMarginTop};
+          color: #000;
+          font-size: ${BADGE_TEMPLATE.positionFontSize};
+          font-weight: 400;
+          line-height: 1.2;
+          text-transform: uppercase;
+        }
+
+        .badge-print-info-section {
+          max-width: ${BADGE_TEMPLATE.nameMaxWidth};
+          margin: ${BADGE_TEMPLATE.companyMarginTop} 0;
+        }
+
+        .badge-print-company {
+          color: #333;
+          font-size: ${BADGE_TEMPLATE.companyFontSize};
+          font-weight: 400;
+          line-height: 1.2;
+        }
+
+        .badge-print-country {
+          margin-top: 2px;
+          color: #333;
+          font-size: ${BADGE_TEMPLATE.countryFontSize};
+          font-weight: 400;
+          line-height: 1.2;
+          text-transform: uppercase;
+        }
+
+        .badge-print-qr-section {
+          display: flex;
+          min-height: ${BADGE_TEMPLATE.qrSectionMinHeight};
+          margin-top: auto;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .badge-print-qr-frame {
+          display: flex;
+          width: ${BADGE_TEMPLATE.qrPrintSize};
+          height: ${BADGE_TEMPLATE.qrPrintSize};
+          align-items: center;
+          justify-content: center;
+          background: #fff;
+        }
+
+        .badge-print-type {
+          width: 100%;
+          color: #000;
+          font-size: ${BADGE_TEMPLATE.badgeTypeFontSize};
+          font-weight: 900;
+          letter-spacing: ${BADGE_TEMPLATE.badgeTypeLetterSpacing};
+          line-height: 1;
+          text-align: center;
+          text-transform: uppercase;
+          transform: translateY(${BADGE_TEMPLATE.badgeTypeTranslateY});
+        }
+
+        .badge-print-footer {
+          display: flex;
+          width: 100%;
+          height: ${BADGE_TEMPLATE.footerHeight};
+          align-items: center;
+          justify-content: center;
+          box-sizing: border-box;
+          padding: ${BADGE_TEMPLATE.footerPadding};
+        }
+      `}</style>
+    </section>
   )
 }

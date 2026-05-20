@@ -1,5 +1,9 @@
 "use client";
 
+import { normalizeRegistrationCode } from "@/lib/registration-code";
+
+export { normalizeRegistrationCode };
+
 export interface BadgeTemplateData {
   firstName: string;
   lastName: string;
@@ -14,25 +18,26 @@ export const BADGE_TEMPLATE = {
   pageSize: "10.5cm 13cm",
   width: "10.5cm",
   height: "13cm",
-  backgroundImageUrl: "https://static.expoflow.co/img/badge-preview.png",
-  headerSpacerHeight: "3.8cm",
-  contentAreaHeight: "6.2cm",
-  contentPadding: "0.3cm 0.5cm 1.2cm",
+  headerSpacerHeight: "1.95cm",
+  contentAreaHeight: "6.55cm",
+  contentPadding: "0.25cm 0.5cm 0.15cm",
   footerHeight: "3cm",
-  footerPaddingTop: "1.2cm",
-  nameFontSize: "30pt",
-  positionFontSize: "15pt",
-  positionMarginTop: "4px",
+  footerPadding: "0.5cm",
+  nameFontSize: "20pt",
+  nameMaxFontSizePt: 20,
+  nameMinFontSizePt: 10,
+  nameMaxWidth: "9.5cm",
+  positionFontSize: "13pt",
+  positionMarginTop: "2px",
   companyFontSize: "13pt",
   companyMarginTop: "5px",
-  countryFontSize: "12pt",
-  qrPrintSize: "2.2cm",
-  qrCanvasSize: 105,
-  qrCodeFontSize: "10pt",
-  qrCodeLetterSpacing: "1.2px",
-  qrCodeMarginTop: "0.1cm",
-  badgeTypeFontSize: "20pt",
+  countryFontSize: "13pt",
+  qrPrintSize: "2cm",
+  qrCanvasSize: 100,
+  qrSectionMinHeight: "2.15cm",
+  badgeTypeFontSize: "30pt",
   badgeTypeLetterSpacing: "2px",
+  badgeTypeTranslateY: "0.45cm",
 } as const;
 
 export const DEFAULT_BADGE_CATEGORY = "VISITOR";
@@ -60,29 +65,15 @@ function getBadgeCategory(category?: string): string {
 }
 
 export function getBadgeQrUrl(registrationCode: string): string {
-  return `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(
-    registrationCode
-  )}`;
-}
+  const normalizedRegistrationCode = normalizeRegistrationCode(registrationCode);
+  const params = new URLSearchParams({
+    data: normalizedRegistrationCode,
+    ecc: "M",
+    margin: "0",
+    size: "100x100",
+  });
 
-/**
- * Dynamically scales the name font size based on character count.
- * Short names get full size, long names scale down to remain readable.
- */
-export function getNameFontSize(fullName: string): string {
-  const len = fullName.trim().length;
-  const maxPt = 26;
-  const minPt = 12;
-  const shortThreshold = 10; // names ≤10 chars get full size
-  const longThreshold = 25;  // names ≥25 chars get minimum size
-
-  if (len <= shortThreshold) return `${maxPt}pt`;
-  if (len >= longThreshold) return `${minPt}pt`;
-
-  // Linear interpolation between thresholds
-  const ratio = (len - shortThreshold) / (longThreshold - shortThreshold);
-  const pt = Math.round(maxPt - ratio * (maxPt - minPt));
-  return `${pt}pt`;
+  return `https://api.qrserver.com/v1/create-qr-code/?${params.toString()}`;
 }
 
 export function buildBadgeHtml(data: BadgeTemplateData): string {
@@ -91,160 +82,316 @@ export function buildBadgeHtml(data: BadgeTemplateData): string {
   const companyName = normalizeText(data.companyName);
   const countryLabel = getBadgeCountryLabel(data.countryLabel);
   const category = getBadgeCategory(data.category);
-  const qrUrl = getBadgeQrUrl(data.registrationCode);
-
-  const nameFontSize = getNameFontSize(fullName);
+  const registrationCode = normalizeRegistrationCode(data.registrationCode);
+  const qrUrl = getBadgeQrUrl(registrationCode);
 
   return `
-    <div class="badge-container">
-      <div class="header-spacer"></div>
-      <div class="content-area">
-        <div class="top-group">
-          <div class="name" style="font-size: ${nameFontSize}">${escapeHtml(fullName)}</div>
-          ${position ? `<div class="position">${escapeHtml(position)}</div>` : ""}
+    <section class="badge-print-page">
+      <div class="badge-print-container">
+        <div class="badge-print-header-spacer"></div>
+
+        <div class="badge-print-content">
+          <div class="badge-print-top-group">
+            <div class="badge-print-name-section">
+              <div class="badge-print-name">${escapeHtml(fullName)}</div>
+              ${position ? `<div class="badge-print-position">${escapeHtml(position)}</div>` : ""}
+            </div>
+
+            <div class="badge-print-info-section">
+              <div class="badge-print-company">${escapeHtml(companyName)}</div>
+              <div class="badge-print-country">${escapeHtml(countryLabel)}</div>
+            </div>
+          </div>
+
+          <div class="badge-print-qr-section">
+            <div class="badge-print-qr-frame">
+              <img src="${qrUrl}" alt="QR Code" />
+            </div>
+          </div>
         </div>
-        <div class="info-group">
-          <div class="company">${escapeHtml(companyName)}</div>
-          <div class="country">${escapeHtml(countryLabel)}</div>
-        </div>
-        <div class="qr-group">
-          <img src="${qrUrl}" class="qr-code" />
-          <div class="registration-code">${escapeHtml(data.registrationCode)}</div>
+
+        <div class="badge-print-footer">
+          <div class="badge-print-type">${escapeHtml(category)}</div>
         </div>
       </div>
-      <div class="footer-content">
-        <div class="badge-type">${escapeHtml(category)}</div>
-      </div>
-    </div>
+    </section>
+  `;
+}
+
+function getNameFitScript() {
+  return `
+    function fitBadgeNames() {
+      var maxFontSizePt = ${BADGE_TEMPLATE.nameMaxFontSizePt};
+      var minFontSizePt = ${BADGE_TEMPLATE.nameMinFontSizePt};
+      var pointsPerPixel = 72 / 96;
+      var names = document.querySelectorAll('.badge-print-name');
+
+      names.forEach(function (nameElement) {
+        nameElement.style.fontSize = maxFontSizePt + 'pt';
+
+        var availableWidth = nameElement.clientWidth;
+        var requiredWidth = nameElement.scrollWidth;
+        var currentFontSizePx = parseFloat(window.getComputedStyle(nameElement).fontSize);
+        var currentFontSizePt = currentFontSizePx * pointsPerPixel;
+
+        if (availableWidth <= 0 || requiredWidth <= 0 || currentFontSizePt <= 0) {
+          return;
+        }
+
+        var nextFontSizePt = requiredWidth <= availableWidth
+          ? currentFontSizePt
+          : currentFontSizePt * (availableWidth / requiredWidth);
+
+        nextFontSizePt = Math.max(minFontSizePt, Math.min(maxFontSizePt, nextFontSizePt));
+        nameElement.style.fontSize = nextFontSizePt.toFixed(2) + 'pt';
+      });
+    }
+
+    window.addEventListener('resize', fitBadgeNames);
+  `;
+}
+
+function getBadgeStyles() {
+  return `
+    @page {
+      size: ${BADGE_TEMPLATE.pageSize};
+      margin: 0;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      width: auto;
+      height: auto;
+      margin: 0;
+      padding: 0;
+      background: #fff;
+      color: #000;
+      font-family: Arial, sans-serif;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .badge-print-root {
+      display: block;
+      width: auto;
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      gap: 0;
+    }
+
+    .badge-print-page {
+      display: block;
+      width: ${BADGE_TEMPLATE.width};
+      height: ${BADGE_TEMPLATE.height};
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #fff;
+      page-break-after: always;
+      page-break-inside: avoid;
+      break-after: page;
+      break-inside: avoid;
+    }
+
+    .badge-print-page:last-of-type {
+      page-break-after: auto;
+      break-after: auto;
+    }
+
+    .badge-print-container {
+      position: relative;
+      display: flex;
+      width: ${BADGE_TEMPLATE.width};
+      height: ${BADGE_TEMPLATE.height};
+      flex-direction: column;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .badge-print-header-spacer {
+      width: 100%;
+      height: ${BADGE_TEMPLATE.headerSpacerHeight};
+    }
+
+    .badge-print-content {
+      display: flex;
+      width: 100%;
+      height: ${BADGE_TEMPLATE.contentAreaHeight};
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      box-sizing: border-box;
+      padding: ${BADGE_TEMPLATE.contentPadding};
+      text-align: center;
+    }
+
+    .badge-print-top-group {
+      display: flex;
+      width: 100%;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .badge-print-name-section {
+      margin-bottom: 5px;
+    }
+
+    .badge-print-name {
+      width: 100%;
+      max-width: ${BADGE_TEMPLATE.nameMaxWidth};
+      overflow: hidden;
+      color: #000;
+      font-size: ${BADGE_TEMPLATE.nameFontSize};
+      font-weight: 700;
+      line-height: 1;
+      text-overflow: clip;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .badge-print-position {
+      margin-top: ${BADGE_TEMPLATE.positionMarginTop};
+      color: #000;
+      font-size: ${BADGE_TEMPLATE.positionFontSize};
+      font-weight: 400;
+      line-height: 1.2;
+      text-transform: uppercase;
+    }
+
+    .badge-print-info-section {
+      max-width: ${BADGE_TEMPLATE.nameMaxWidth};
+      margin: ${BADGE_TEMPLATE.companyMarginTop} 0;
+    }
+
+    .badge-print-company {
+      color: #333;
+      font-size: ${BADGE_TEMPLATE.companyFontSize};
+      font-weight: 400;
+      line-height: 1.2;
+    }
+
+    .badge-print-country {
+      margin-top: 2px;
+      color: #333;
+      font-size: ${BADGE_TEMPLATE.countryFontSize};
+      font-weight: 400;
+      line-height: 1.2;
+      text-transform: uppercase;
+    }
+
+    .badge-print-qr-section {
+      display: flex;
+      min-height: ${BADGE_TEMPLATE.qrSectionMinHeight};
+      margin-top: auto;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .badge-print-qr-frame {
+      display: flex;
+      width: ${BADGE_TEMPLATE.qrPrintSize};
+      height: ${BADGE_TEMPLATE.qrPrintSize};
+      align-items: center;
+      justify-content: center;
+      background: #fff;
+    }
+
+    .badge-print-qr-frame img {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .badge-print-footer {
+      display: flex;
+      width: 100%;
+      height: ${BADGE_TEMPLATE.footerHeight};
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+      padding: ${BADGE_TEMPLATE.footerPadding};
+    }
+
+    .badge-print-type {
+      width: 100%;
+      color: #000;
+      font-size: ${BADGE_TEMPLATE.badgeTypeFontSize};
+      font-weight: 900;
+      letter-spacing: ${BADGE_TEMPLATE.badgeTypeLetterSpacing};
+      line-height: 1;
+      text-align: center;
+      text-transform: uppercase;
+      transform: translateY(${BADGE_TEMPLATE.badgeTypeTranslateY});
+    }
+
+    @media print {
+      html,
+      body {
+        width: auto;
+        height: auto;
+        margin: 0;
+        padding: 0;
+        background: #fff;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      .badge-print-root {
+        display: block !important;
+        width: auto !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        gap: 0 !important;
+      }
+
+      .badge-print-page {
+        display: block !important;
+        width: ${BADGE_TEMPLATE.width} !important;
+        height: ${BADGE_TEMPLATE.height} !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+        page-break-after: always;
+        page-break-inside: avoid;
+        break-after: page;
+        break-inside: avoid;
+      }
+
+      .badge-print-page:last-of-type {
+        page-break-after: auto;
+        break-after: auto;
+      }
+    }
   `;
 }
 
 export function buildBadgePrintDocument(title: string, badges: BadgeTemplateData[]): string {
-  const badgesHtml = badges
-    .map((badge, index) => {
-      const pageBreakClass = index < badges.length - 1 ? " page-break" : "";
-      return buildBadgeHtml(badge).replace('class="badge-container"', `class="badge-container${pageBreakClass}"`);
-    })
-    .join("");
+  const badgesHtml = badges.map(buildBadgeHtml).join("");
 
   return `
-    <!DOCTYPE html>
+    <!doctype html>
     <html>
       <head>
         <title>${escapeHtml(title)}</title>
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-        <style>
-          *, *::before, *::after { box-sizing: border-box; }
-          @page { size: ${BADGE_TEMPLATE.pageSize}; margin: 0; }
-          body {
-            margin: 0;
-            padding: 20px 0 0;
-            font-family: 'Montserrat', sans-serif;
-            background-color: #f0f0f0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-          }
-          .badge-container {
-            width: ${BADGE_TEMPLATE.width};
-            height: ${BADGE_TEMPLATE.height};
-            display: flex;
-            flex-direction: column;
-            background-color: white;
-            box-shadow: 0 0 10px rgba(0,0,0,0.2);
-            background-image: url('${BADGE_TEMPLATE.backgroundImageUrl}');
-            background-size: ${BADGE_TEMPLATE.width} ${BADGE_TEMPLATE.height};
-            background-repeat: no-repeat;
-            position: relative;
-            margin-bottom: 20px;
-          }
-          .header-spacer { height: ${BADGE_TEMPLATE.headerSpacerHeight}; width: 100%; }
-          .content-area {
-            height: ${BADGE_TEMPLATE.contentAreaHeight};
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            align-items: center;
-            text-align: center;
-            box-sizing: border-box;
-            padding: ${BADGE_TEMPLATE.contentPadding};
-          }
-          .footer-content {
-            height: ${BADGE_TEMPLATE.footerHeight};
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding-top: ${BADGE_TEMPLATE.footerPaddingTop};
-          }
-          .name {
-            font-size: ${BADGE_TEMPLATE.nameFontSize};
-            font-weight: bold;
-            text-transform: uppercase;
-            line-height: normal;
-            color: #000;
-          }
-          .position {
-            font-size: ${BADGE_TEMPLATE.positionFontSize};
-            font-weight: bold;
-            color: #000;
-            text-transform: uppercase;
-            margin-top: ${BADGE_TEMPLATE.positionMarginTop};
-          }
-          .company {
-            font-size: ${BADGE_TEMPLATE.companyFontSize};
-            color: #333;
-            margin-top: ${BADGE_TEMPLATE.companyMarginTop};
-          }
-          .country {
-            font-size: ${BADGE_TEMPLATE.countryFontSize};
-            font-weight: bold;
-            text-transform: uppercase;
-            color: #000;
-          }
-          .qr-code { width: ${BADGE_TEMPLATE.qrPrintSize}; height: ${BADGE_TEMPLATE.qrPrintSize}; }
-          .qr-group {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-          }
-          .registration-code {
-            margin-top: ${BADGE_TEMPLATE.qrCodeMarginTop};
-            font-size: ${BADGE_TEMPLATE.qrCodeFontSize};
-            font-weight: 700;
-            letter-spacing: ${BADGE_TEMPLATE.qrCodeLetterSpacing};
-            color: #000;
-          }
-          .badge-type {
-            font-size: ${BADGE_TEMPLATE.badgeTypeFontSize};
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: ${BADGE_TEMPLATE.badgeTypeLetterSpacing};
-            color: #000;
-          }
-          .page-break { page-break-after: always; }
-          @media print {
-            body {
-              background-color: white;
-              padding: 0;
-              display: block;
-            }
-            .badge-container {
-              box-shadow: none;
-              background-image: none !important;
-              -webkit-print-color-adjust: exact;
-              margin: 0;
-            }
-            .page-break:last-child { page-break-after: avoid !important; }
-          }
-        </style>
+        <style>${getBadgeStyles()}</style>
       </head>
       <body>
-        ${badgesHtml}
+        <main class="badge-print-root">
+          ${badgesHtml}
+        </main>
+        <script>
+          ${getNameFitScript()}
+        </script>
       </body>
     </html>
   `;
@@ -255,7 +402,7 @@ function openBadgeWindow(documentHtml: string): void {
     return;
   }
 
-  const previewWindow = window.open("", "_blank");
+  const previewWindow = window.open("", "_blank", "popup=yes,width=1100,height=900");
   if (!previewWindow) {
     return;
   }
@@ -280,11 +427,18 @@ export function openBadgePrintWindow(title: string, badges: BadgeTemplateData[])
   openBadgeWindow(buildBadgePrintDocument(title, badges).replace(
     "</body>",
     `        <script>
-          window.onload = () => {
-            setTimeout(() => {
-              window.print();
-              window.close();
-            }, 1000);
+          window.onload = function () {
+            window.setTimeout(function () {
+              fitBadgeNames();
+              window.requestAnimationFrame(function () {
+                window.requestAnimationFrame(function () {
+                  window.print();
+                  window.onafterprint = function () {
+                    window.close();
+                  };
+                });
+              });
+            }, 500);
           };
         </script>
       </body>`
